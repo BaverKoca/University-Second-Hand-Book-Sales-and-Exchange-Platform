@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sell | TheBookMark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!--Header-->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center p-4">
+      <a href="index.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-8 w-8 mr-2">TheBookMark
+      </a>
+      <nav class="space-x-6 text-sm font-medium">
+        <a href="index.html" class="hover:text-blue-600">Home</a>
+        <a href="buy.html" class="hover:text-blue-600">Buy</a>
+        <a href="sell.html" class="hover:text-blue-600">Sell</a>
+        <a href="exchange.html" class="hover:text-blue-600">Exchange</a>
+        <a href="login.html" class="hover:text-blue-600">Login</a>
+        <a href="#" class="hover:text-blue-600">Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <!--Sell Section-->
+  <section class="max-w-xl mx-auto mt-16 bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-3xl font-bold mb-6 text-center">Sell Your Book</h1>
+    <form class="space-y-6">
+      <div>
+        <label class="block mb-2 font-semibold">Book Title</label>
+        <input type="text" class="w-full border rounded px-3 py-2 outline-none" placeholder="Enter book title">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">Author</label>
+        <input type="text" class="w-full border rounded px-3 py-2 outline-none" placeholder="Enter author name">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">Price ($)</label>
+        <input type="number" class="w-full border rounded px-3 py-2 outline-none" placeholder="Enter price">
+      </div>
+      <div>
+        <label class="block mb-2 font-semibold">Upload Image</label>
+        <input type="file" class="w-full">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700 transition">List Book for Sale</button>
+    </form>
+  </section>
+
+  <!--Footer-->
+  <footer class="mt-16 py-8 border-t text-center text-sm text-gray-500">
+    <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+      <a href="#" class="hover:text-blue-600">About Us</a>
+      <a href="#" class="hover:text-blue-600">Contact</a>
+      <a href="#" class="hover:text-blue-600">FAQ</a>
+    </div>
+    <div class="flex justify-center gap-6 mt-4">
+      <a href="#"><img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6"></a>
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/instagram-new.png" alt="Instagram" class="h-6"></a>
+    </div>
+  </footer>
+
+</body>
+</html>
