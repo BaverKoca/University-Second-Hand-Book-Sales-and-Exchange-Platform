@@ -7,6 +7,21 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+  <script>
+    // Redirect to login if not authenticated (run as early as possible)
+    if (!localStorage.getItem('isLoggedIn')) {
+      window.location.replace('index.html');
+    }
+  </script>
+  <script>
+    // Extra protection: block rendering until authentication is checked
+    (function() {
+      if (!localStorage.getItem('isLoggedIn')) {
+        document.documentElement.style.display = 'none';
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center p-4">
       <a href="home.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">

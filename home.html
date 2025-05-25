@@ -7,6 +7,21 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
+  <script>
+    // Redirect to login if not authenticated (run as early as possible)
+    if (!localStorage.getItem('isLoggedIn')) {
+      window.location.replace('index.html');
+    }
+  </script>
+  <script>
+    // Extra protection: block rendering until authentication is checked
+    (function() {
+      if (!localStorage.getItem('isLoggedIn')) {
+        document.documentElement.style.display = 'none';
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
 
   <!--Header-->
   <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -36,8 +51,8 @@
     <h1 class="text-4xl font-bold mb-6">Find, Sell, or Exchange Your Books Easily</h1>
     <div class="max-w-xl mx-auto">
       <div class="flex items-center border rounded-full px-4 py-2 shadow-sm bg-white">
-        <input type="text" placeholder="Search by Title, Author or Genre" class="flex-1 outline-none p-2 text-gray-700">
-        <button>
+        <input type="text" id="homeSearchInput" placeholder="Search by Title, Author or Genre" class="flex-1 outline-none p-2 text-gray-700">
+        <button id="homeSearchBtn">
           <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1117.5 3a7.5 7.5 0 010 15z"/>
           </svg>
@@ -149,6 +164,28 @@
     setInterval(() => {
       rightBtn.click();
     }, 3000);
+
+    // Home page search redirect logic
+    const homeSearchInput = document.getElementById('homeSearchInput');
+    const homeSearchBtn = document.getElementById('homeSearchBtn');
+    if (homeSearchInput && homeSearchBtn) {
+      function goToBuyWithQuery() {
+        const q = encodeURIComponent(homeSearchInput.value.trim());
+        if (q) {
+          window.location.href = `buy.html?search=${q}`;
+        }
+      }
+      homeSearchBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        goToBuyWithQuery();
+      });
+      homeSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          goToBuyWithQuery();
+        }
+      });
+    }
   </script>
 
   <!--Call to Action-->
