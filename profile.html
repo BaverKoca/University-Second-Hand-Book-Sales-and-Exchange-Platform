@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Profile - TheBookMark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center p-4">
+      <a href="home.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-8 w-8 mr-2">TheBookMark
+      </a>
+      <nav class="space-x-6 text-sm font-medium relative">
+        <a href="home.html" class="hover:text-blue-600">Home</a>
+        <a href="buy.html" class="hover:text-blue-600">Buy</a>
+        <a href="sell-exchange.html" class="hover:text-blue-600">Sell or Exchange</a>
+        <div class="inline-block relative" id="profile-menu-container">
+          <a href="#" class="hover:text-blue-600 cursor-pointer" id="profile-menu-btn">Profile</a>
+          <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
+            <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
+            <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
+            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
+            <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-2xl mx-auto mt-16 bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Your Profile</h1>
+    <div class="flex flex-col items-center gap-4">
+      <img src="https://img.icons8.com/ios-filled/100/000000/user-male-circle.png" alt="Profile" class="h-24 w-24 rounded-full border-4 border-blue-200">
+      <div class="text-center">
+        <h2 class="text-xl font-semibold">Baver Koca</h2>
+        <p class="text-gray-600">example@emu.edu.tr</p>
+      </div>
+      <div class="w-full mt-6">
+        <h3 class="font-semibold mb-2">Account Details</h3>
+        <div class="bg-blue-50 rounded-lg p-4 text-gray-700">
+          <div><span class="font-semibold">Full Name:</span> Baver Koca</div>
+          <div><span class="font-semibold">Email:</span> example@emu.edu.tr</div>
+          <div><span class="font-semibold">Member Since:</span> 2023</div>
+        </div>
+      </div>
+      <button class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Edit Profile</button>
+    </div>
+  </main>
+  <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
+    <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+      <a href="#about" class="hover:text-blue-600">About Us</a>
+      <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
+    </div>
+    <div class="flex justify-center gap-6 mt-4">
+      <a href="https://www.linkedin.com/in/baver-koca" target="_blank" rel="noopener"><img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6"></a>
+      <a href="https://github.com/BaverKoca" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="h-6"></a>
+    </div>
+    <div class="mt-4 text-xs text-gray-400">&copy; 2025 TheBookMark. All rights reserved.</div>
+  </footer>
+  <script>
+    // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
+    const profileBtn = document.getElementById('profile-menu-btn');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const profileMenuContainer = document.getElementById('profile-menu-container');
+    let dropdownTimeout;
+    function showDropdown() {
+      clearTimeout(dropdownTimeout);
+      profileDropdown.classList.remove('hidden');
+    }
+    function hideDropdown() {
+      dropdownTimeout = setTimeout(() => {
+        profileDropdown.classList.add('hidden');
+      }, 150);
+    }
+    profileBtn.addEventListener('mouseenter', showDropdown);
+    profileMenuContainer.addEventListener('mouseleave', hideDropdown);
+    profileMenuContainer.addEventListener('mouseenter', showDropdown);
+    profileBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      showDropdown();
+    });
+    profileDropdown.addEventListener('mouseenter', showDropdown);
+    profileDropdown.addEventListener('mouseleave', hideDropdown);
+    document.addEventListener('click', function(e) {
+      if (!profileMenuContainer.contains(e.target)) {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
