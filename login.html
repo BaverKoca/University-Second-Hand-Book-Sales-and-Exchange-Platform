@@ -5,6 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - TheBookMark</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          window.location.href = 'home.html';
+        } else {
+          alert(data.error || 'Invalid username or password.');
+        }
+      })
+      .catch(() => alert('Could not connect to server.'));
+    });
+  </script>
 </head>
 <body class="bg-[#FFF8F0] min-h-screen flex items-center justify-center">
 

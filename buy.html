@@ -7,6 +7,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
+  <script>
+    // Extra protection: block rendering until authentication is checked
+    (function() {
+      if (!localStorage.getItem('isLoggedIn')) {
+        document.documentElement.style.display = 'none';
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
 
   <!--Header-->
   <header class="bg-white shadow-sm sticky top-0 z-50">
@@ -145,6 +154,9 @@
         `).join(''));
       </script>
     </div>
+    <div id="noResultsMsg" class="col-span-full text-center text-lg text-red-500 font-semibold mt-8 hidden">
+      There's nothing match with your search
+    </div>
   </section>
   <script>
     // Favorite star logic
@@ -277,29 +289,50 @@
   </script>
   <script>
     // Book search logic for buy page
-    const bookCards = Array.from(document.querySelectorAll('.max-w-7xl .bg-white.rounded-2xl'));
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    function filterBooksBuy(query) {
-      const q = query.trim().toLowerCase();
-      bookCards.forEach(card => {
-        const title = card.querySelector('h3').textContent.toLowerCase();
-        const author = card.querySelector('p.text-sm').textContent.toLowerCase();
-        card.style.display = (title.includes(q) || author.includes(q)) ? '' : 'none';
-      });
-    }
-    // Remove input event listener, only trigger on button click or Enter key
-    searchBtn.addEventListener('click', e => {
-      e.preventDefault();
-      filterBooksBuy(searchInput.value);
-    });
-    searchInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
+    document.addEventListener('DOMContentLoaded', function() {
+      const bookCards = Array.from(document.querySelectorAll('.max-w-7xl .bg-white.rounded-2xl'));
+      const searchInput = document.getElementById('searchInput');
+      const searchBtn = document.getElementById('searchBtn');
+      const noResultsMsg = document.getElementById('noResultsMsg');
+      function filterBooksBuy(query) {
+        const q = query.trim().toLowerCase();
+        let matchCount = 0;
+        bookCards.forEach(card => {
+          const title = card.querySelector('h3').textContent.toLowerCase();
+          const author = card.querySelector('p.text-sm').textContent.toLowerCase();
+          const isMatch = title.includes(q) || author.includes(q);
+          card.style.display = isMatch ? '' : 'none';
+          if (isMatch) matchCount++;
+        });
+        const noResultsMsg = document.getElementById('noResultsMsg');
+        if (noResultsMsg) {
+          if (matchCount === 0) {
+            noResultsMsg.classList.remove('hidden');
+          } else {
+            noResultsMsg.classList.add('hidden');
+          }
+        }
+      }
+      // Remove input event listener, only trigger on button click or Enter key
+      searchBtn.addEventListener('click', e => {
         e.preventDefault();
         filterBooksBuy(searchInput.value);
+      });
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          filterBooksBuy(searchInput.value);
+        }
+      });
+      // --- NEW: Check for ?search= in URL and trigger search ---
+      const params = new URLSearchParams(window.location.search);
+      const search = params.get('search');
+      if (search) {
+        searchInput.value = decodeURIComponent(search);
+        filterBooksBuy(searchInput.value);
       }
+      // --- END NEW ---
     });
   </script>
-
 </body>
 </html>
