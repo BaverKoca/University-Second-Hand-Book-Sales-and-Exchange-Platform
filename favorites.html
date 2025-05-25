@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Favorite Books - TheBookMark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center p-4">
+      <a href="home.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-8 w-8 mr-2">TheBookMark
+      </a>
+      <nav class="space-x-6 text-sm font-medium relative">
+        <a href="home.html" class="hover:text-blue-600">Home</a>
+        <a href="buy.html" class="hover:text-blue-600">Buy</a>
+        <a href="sell-exchange.html" class="hover:text-blue-600">Sell or Exchange</a>
+        <div class="inline-block relative" id="profile-menu-container">
+          <a href="#" class="hover:text-blue-600 cursor-pointer" id="profile-menu-btn">Profile</a>
+          <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
+            <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
+            <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
+            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
+            <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-7xl mx-auto mt-16 bg-white p-8 rounded-xl shadow-md min-h-[60vh]">
+    <h1 class="text-3xl font-bold mb-8 text-center text-orange-600">Your Favorite Books</h1>
+    <div id="favorites-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <!-- Favorite books will be rendered here by JS -->
+    </div>
+    <div id="no-favorites" class="text-center text-gray-500 mt-12 text-lg hidden">You have no favorite books yet.</div>
+  </main>
+  <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
+    <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+      <a href="#about" class="hover:text-blue-600">About Us</a>
+      <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
+    </div>
+    <div class="flex justify-center gap-6 mt-4">
+      <a href="https://www.linkedin.com/in/baver-koca" target="_blank" rel="noopener"><img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6"></a>
+      <a href="https://github.com/BaverKoca" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="h-6"></a>
+    </div>
+    <div class="mt-4 text-xs text-gray-400">&copy; 2025 TheBookMark. All rights reserved.</div>
+  </footer>
+  <script>
+    // Load favorites from localStorage (by book index)
+    const allBooks = [
+      {title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', price: 45, img: 'https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg'},
+      {title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 10, img: 'https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg'},
+      {title: 'Linear Algebra and its Applications', author: 'David C. Lay', price: 35, img: 'https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg'},
+      {title: 'Database Management Systems', author: 'Raghu Ramakrishnan', price: 40, img: 'https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg'},
+      {title: 'Clean Code', author: 'Robert C. Martin', price: 30, img: 'https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg'},
+      {title: 'The Pragmatic Programmer', author: 'Andrew Hunt', price: 32, img: 'https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg'},
+      {title: 'Design Patterns', author: 'Erich Gamma', price: 38, img: 'https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg'},
+      {title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', price: 50, img: 'https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg'},
+      {title: 'Introduction to the Theory of Computation', author: 'Michael Sipser', price: 42, img: 'https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg'},
+      {title: 'Operating System Concepts', author: 'Abraham Silberschatz', price: 44, img: 'https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg'},
+    ];
+    for(let i=0;i<40;i++){
+      allBooks.push({title: `Sample Book ${i+1}`, author: `Author ${i+1}`, price: 10+i, img: 'https://img.icons8.com/ios-filled/100/000000/book.png'});
+    }
+    function renderFavorites() {
+      const favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
+      const list = document.getElementById('favorites-list');
+      list.innerHTML = '';
+      if (!favs.length) {
+        document.getElementById('no-favorites').classList.remove('hidden');
+        return;
+      } else {
+        document.getElementById('no-favorites').classList.add('hidden');
+      }
+      favs.forEach(idx => {
+        const b = allBooks[idx];
+        if (!b) return;
+        list.innerHTML += `
+        <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
+          <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Remove from favorites">
+            <svg class="w-6 h-6 text-orange-400 favorite-star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/></svg>
+          </button>
+          <img src='${b.img}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
+          <div class='p-5 flex-1 flex flex-col'>
+            <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
+            <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
+            <p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
+            <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Add to Cart</button>
+          </div>
+        </div>
+        `;
+      });
+      // Remove from favorites
+      document.querySelectorAll('.favorite-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          let favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
+          const idx = parseInt(btn.getAttribute('data-idx'));
+          favs = favs.filter(i => i !== idx);
+          localStorage.setItem('favoriteBooks', JSON.stringify(favs));
+          renderFavorites();
+        });
+      });
+    }
+    renderFavorites();
+  </script>
+  <script>
+    // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
+    const profileBtn = document.getElementById('profile-menu-btn');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const profileMenuContainer = document.getElementById('profile-menu-container');
+    let dropdownTimeout;
+    function showDropdown() {
+      clearTimeout(dropdownTimeout);
+      profileDropdown.classList.remove('hidden');
+    }
+    function hideDropdown() {
+      dropdownTimeout = setTimeout(() => {
+        profileDropdown.classList.add('hidden');
+      }, 150);
+    }
+    profileBtn.addEventListener('mouseenter', showDropdown);
+    profileMenuContainer.addEventListener('mouseleave', hideDropdown);
+    profileMenuContainer.addEventListener('mouseenter', showDropdown);
+    profileBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      showDropdown();
+    });
+    profileDropdown.addEventListener('mouseenter', showDropdown);
+    profileDropdown.addEventListener('mouseleave', hideDropdown);
+    document.addEventListener('click', function(e) {
+      if (!profileMenuContainer.contains(e.target)) {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
