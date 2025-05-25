@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - TheBookMark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#FFF8F0] min-h-screen flex items-center justify-center">
+
+  <!-- Navbar -->
+  <div class="absolute top-0 left-0 w-full flex items-center justify-start p-6">
+    <a href="index.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-8 w-8 mr-2">TheBookMark
+    </a>
+  </div>
+
+  <!-- Register Card -->
+  <div class="bg-white p-10 rounded-xl shadow-lg w-full max-w-md mt-20">
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold text-gray-900">Create Account</h2>
+      <p class="text-gray-600 mt-2">Sign up to join TheBookMark community</p>
+    </div>
+    <form class="space-y-6" id="register-form">
+      <div>
+        <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+        <input type="text" id="name" name="name" required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">EMU Email address</label>
+        <input type="email" id="email" name="email" required pattern="^[a-zA-Z0-9._%+-]+@emu\.edu\.tr$"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+          placeholder="example@emu.edu.tr">
+        <span id="email-error" class="text-red-500 text-xs hidden">Email must end with @emu.edu.tr</span>
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+        <input type="password" id="password" name="password" required minlength="6"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+      </div>
+      <div>
+        <label for="confirm-password" class="block text-sm font-semibold text-gray-700 mb-1">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirm-password" required minlength="6"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
+        <span id="password-error" class="text-red-500 text-xs hidden">Passwords do not match</span>
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+        Register
+      </button>
+    </form>
+    <p class="mt-8 text-center text-sm text-gray-600">
+      Already have an account?
+      <a href="login.html" class="text-blue-700 font-semibold hover:underline">Sign In</a>
+    </p>
+  </div>
+
+  <script>
+    // EMU email and password validation
+    const form = document.getElementById('register-form');
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const passwordError = document.getElementById('password-error');
+
+    form.addEventListener('submit', function(e) {
+      let valid = true;
+      // Email validation
+      const emuPattern = /^[a-zA-Z0-9._%+-]+@emu\.edu\.tr$/;
+      if (!emuPattern.test(emailInput.value)) {
+        emailError.classList.remove('hidden');
+        valid = false;
+      } else {
+        emailError.classList.add('hidden');
+      }
+      // Password match validation
+      if (passwordInput.value !== confirmPasswordInput.value) {
+        passwordError.classList.remove('hidden');
+        valid = false;
+      } else {
+        passwordError.classList.add('hidden');
+      }
+      if (!valid) e.preventDefault();
+    });
+  </script>
+
+</body>
+</html>

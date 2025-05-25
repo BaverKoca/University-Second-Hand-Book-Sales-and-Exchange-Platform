@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TheBookMark</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!--Header-->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center p-4">
+      <a href="index.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-8 w-8 mr-2">TheBookMark
+      </a>
+      <nav class="space-x-6 text-sm font-medium">
+        <a href="index.html" class="hover:text-blue-600">Home</a>
+        <a href="buy.html" class="hover:text-blue-600">Buy</a>
+        <a href="sell.html" class="hover:text-blue-600">Sell</a>
+        <a href="exchange.html" class="hover:text-blue-600">Exchange</a>
+        <a href="login.html" class="hover:text-blue-600">Login</a>
+        <a href="#" class="hover:text-blue-600">Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <!--Hero Section-->
+  <section class="text-center py-16 px-4">
+    <h1 class="text-4xl font-bold mb-6">Find, Sell, or Exchange Your Books Easily</h1>
+    <div class="max-w-xl mx-auto">
+      <div class="flex items-center border rounded-full px-4 py-2 shadow-sm bg-white">
+        <input type="text" placeholder="Search by Title, Author or Genre" class="flex-1 outline-none p-2 text-gray-700">
+        <button>
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1117.5 3a7.5 7.5 0 010 15z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!--Featured Books Carousel-->
+  <section class="max-w-6xl mx-auto px-4">
+    <h2 class="text-2xl font-bold mb-8">Featured Books</h2>
+    <div class="relative">
+      <button id="carousel-left" class="absolute left-0 top-1/2 -translate-y-1/2 bg-white border rounded-full shadow p-2 z-10 hover:bg-blue-100 transition">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div id="carousel-track" class="overflow-hidden">
+        <div class="flex transition-transform duration-500" style="will-change: transform;">
+          <!-- 10 Book Cards -->
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg" alt="Introduction to Algorithms" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Introduction to Algorithms</h3>
+            <p class="text-sm text-gray-600">Thomas H. Cormen</p>
+            <p class="mt-2 font-semibold">$45.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg" alt="The Great Gatsby" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">The Great Gatsby</h3>
+            <p class="text-sm text-gray-600">F. Scott Fitzgerald</p>
+            <p class="mt-2 font-semibold">$10.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg" alt="Linear Algebra" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Linear Algebra and its Applications</h3>
+            <p class="text-sm text-gray-600">David C. Lay</p>
+            <p class="mt-2 font-semibold">$35.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg" alt="Database Management Systems" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Database Management Systems</h3>
+            <p class="text-sm text-gray-600">Raghu Ramakrishnan</p>
+            <p class="mt-2 font-semibold">$40.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg" alt="Clean Code" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Clean Code</h3>
+            <p class="text-sm text-gray-600">Robert C. Martin</p>
+            <p class="mt-2 font-semibold">$30.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg" alt="The Pragmatic Programmer" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">The Pragmatic Programmer</h3>
+            <p class="text-sm text-gray-600">Andrew Hunt</p>
+            <p class="mt-2 font-semibold">$32.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg" alt="Design Patterns" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Design Patterns</h3>
+            <p class="text-sm text-gray-600">Erich Gamma</p>
+            <p class="mt-2 font-semibold">$38.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg" alt="Artificial Intelligence" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Artificial Intelligence: A Modern Approach</h3>
+            <p class="text-sm text-gray-600">Stuart Russell</p>
+            <p class="mt-2 font-semibold">$50.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg" alt="Introduction to the Theory of Computation" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Introduction to the Theory of Computation</h3>
+            <p class="text-sm text-gray-600">Michael Sipser</p>
+            <p class="mt-2 font-semibold">$42.00</p>
+          </div>
+          <div class="text-center min-w-[250px] max-w-xs mx-2">
+            <img src="https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg" alt="Operating System Concepts" class="mx-auto mb-4 h-48 object-contain">
+            <h3 class="font-semibold">Operating System Concepts</h3>
+            <p class="text-sm text-gray-600">Abraham Silberschatz</p>
+            <p class="mt-2 font-semibold">$44.00</p>
+          </div>
+        </div>
+      </div>
+      <button id="carousel-right" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white border rounded-full shadow p-2 z-10 hover:bg-blue-100 transition">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+  <script>
+    // Carousel logic
+    const track = document.querySelector('#carousel-track > div');
+    const leftBtn = document.getElementById('carousel-left');
+    const rightBtn = document.getElementById('carousel-right');
+    let index = 0;
+    const visible = 4;
+    const total = 10;
+    function updateCarousel() {
+      track.style.transform = `translateX(-${index * 260}px)`;
+    }
+    rightBtn.onclick = function() {
+      index = (index + 1) % (total - visible + 1);
+      updateCarousel();
+    };
+    leftBtn.onclick = function() {
+      index = (index - 1 + (total - visible + 1)) % (total - visible + 1);
+      updateCarousel();
+    };
+    setInterval(() => {
+      rightBtn.click();
+    }, 3000);
+  </script>
+
+  <!--Call to Action-->
+  <section class="mt-16 text-center">
+    <div class="bg-white mx-auto max-w-2xl py-6 px-4 rounded-xl shadow-sm">
+      <p class="font-semibold">Want to swap books? Find your perfect match!</p>
+    </div>
+  </section>
+
+  <!--Footer-->
+  <footer class="mt-16 py-8 border-t text-center text-sm text-gray-500">
+    <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+      <a href="#" id="about-us-btn" class="hover:text-blue-600">About Us</a>
+      <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
+    </div>
+    <div class="flex justify-center gap-6 mt-4">
+      <a href="https://www.linkedin.com/in/baver-koca" target="_blank" rel="noopener">
+        <img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6">
+      </a>
+      <a href="https://github.com/BaverKoca" target="_blank" rel="noopener">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="h-6">
+      </a>
+    </div>
+  </footer>
+
+  <!-- About Us Modal -->
+  <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl relative border-2 border-blue-200 animate-fade-in overflow-y-auto max-h-[90vh]">
+      <button id="close-about-modal" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 text-3xl font-bold transition">&times;</button>
+      <div class="flex flex-col items-center mb-4">
+        <img src="https://img.icons8.com/ios-filled/50/000000/book.png" alt="Logo" class="h-12 w-12 mb-2">
+        <h2 class="text-3xl font-extrabold text-blue-700 mb-2">About Us</h2>
+      </div>
+      <div class="text-gray-700 text-base leading-relaxed whitespace-pre-line mb-4 px-2 md:px-6" style="font-size:1.08rem;">
+        We are a team of three third-year Computer Engineering students at Eastern Mediterranean University. Throughout our university journey, we encountered a common problem that many students face — accessing course books easily and affordably. To address this, we developed a platform that simplifies the buying, selling, and exchanging of second-hand textbooks.
+
+        Every semester brings new books and new expenses. Our goal is to reduce the financial burden on students by enabling them to buy and sell books at reasonable prices, or even exchange them with others, promoting a culture of sharing and sustainability on campus.
+
+        With a clean design, user-friendly interface, and secure infrastructure, our platform aims to turn textbook transactions into more than just trades — we want to foster a sense of student community and collaboration.
+
+        This project is more than just a technical exercise for us; it's a real-world solution to a real student problem. We’re committed to continuously improving our platform based on user feedback and evolving needs.
+      </div>
+      <div class="mb-2 px-2 md:px-6">
+        <h3 class="text-lg font-bold text-blue-600 mb-1">Our Team</h3>
+        <ul class="list-disc list-inside text-gray-800">
+          <li><span class="font-semibold">Baver Koca</span> – Team Leader</li>
+          <li><span class="font-semibold">Fehmi Alper Demir</span> – Web Developer</li>
+          <li><span class="font-semibold">Sami Anıl Akbaş</span> – Tester</li>
+        </ul>
+      </div>
+      <div class="text-gray-600 text-sm mt-4 text-center px-2 md:px-6">
+        Feel free to reach out to us with your feedback, questions, or if you'd like to contribute.<br>We're always open to collaboration!
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes fade-in {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.3s ease;
+    }
+  </style>
+  <script>
+    // About Us Modal functionality
+    document.getElementById('about-us-btn').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('about-modal').classList.remove('hidden');
+    };
+    document.getElementById('close-about-modal').onclick = function() {
+      document.getElementById('about-modal').classList.add('hidden');
+    };
+    window.onclick = function(event) {
+      const modal = document.getElementById('about-modal');
+      if (event.target === modal) {
+        modal.classList.add('hidden');
+      }
+    };
+  </script>
+
+</body>
+</html>
