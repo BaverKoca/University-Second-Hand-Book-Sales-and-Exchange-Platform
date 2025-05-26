@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TheBookMark - Buy Books</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/session.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
   <script>
@@ -42,41 +43,25 @@
 
   <!--Buy Section-->
   <section class="py-16 px-4 bg-gradient-to-br from-blue-50 to-orange-50 min-h-[80vh]">
-    <h1 class="text-4xl font-extrabold text-center mb-10 text-blue-800">Browse & Buy Books</h1>
-    <div class="max-w-3xl mx-auto mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <form class="flex-1 flex items-center gap-2 border-2 border-blue-200 rounded-full px-6 py-3 shadow bg-white focus-within:ring-2 focus-within:ring-blue-400 transition-all" onsubmit="return false;">
-        <input type="text" id="searchInput" placeholder="Search by Title, Author or Genre" class="flex-1 outline-none p-2 text-gray-700 bg-transparent text-lg"/>
-        <button id="searchBtn" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-semibold transition flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1117.5 3a7.5 7.5 0 010 15z"/></svg>
-          <span class="hidden sm:inline">Search</span>
-        </button>
-      </form>
-      <button id="filterBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-7 7V19a1 1 0 01-1 1h-2a1 1 0 01-1-1v-5.293l-7-7A1 1 0 013 6V4z"/></svg>
-        Filter
-      </button>
-      <div class="relative">
-        <button id="sortBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2 ml-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h12M3 17h6"/></svg>
-          Sort by
-        </button>
-        <div id="sortDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
-          <button class="block w-full text-left px-4 py-2 hover:bg-blue-50 sort-option" data-sort="featured">Featured</button>
-          <button class="block w-full text-left px-4 py-2 hover:bg-blue-50 sort-option" data-sort="low">Price: Low to High</button>
-          <button class="block w-full text-left px-4 py-2 hover:bg-blue-50 sort-option" data-sort="high">Price: High to Low</button>
-          <button class="block w-full text-left px-4 py-2 hover:bg-blue-50 sort-option" data-sort="newest">Newest Arrivals</button>
-        </div>
-      </div>
-    </div>
-    <!-- Filter Modal -->
-    <div id="filterModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-      <div class="bg-white rounded-2xl w-full max-w-md p-8 shadow-2xl relative border-2 border-blue-200 animate-fade-in">
-        <button id="closeFilterModal" class="absolute top-2 right-2 text-gray-400 hover:text-blue-600 text-3xl font-bold transition">&times;</button>
-        <h2 class="text-2xl font-bold text-blue-700 mb-6 text-center">Filter Books</h2>
-        <form id="modalFilterForm" class="space-y-4">
+    <h1 class="text-4xl font-extrabold text-center mb-4 text-blue-800">Browse & Buy Books</h1>
+    <p id="bookCount" class="text-center text-gray-600 mb-8">Loading books...</p>
+    
+    <div class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+      <!-- Search and Filter Section -->
+      <div class="md:w-1/4 bg-white rounded-xl p-6 shadow-lg">
+        <h3 class="font-bold text-lg mb-4 text-gray-800">Filters</h3>
+        <form id="filterForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">For What</label>
+            <select id="forWhat" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <option value="">All</option>
+              <option value="Sell">For Sale</option>
+              <option value="Exchange">For Exchange</option>
+            </select>
+          </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Genre</label>
-            <select id="modalGenre" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <select id="genre" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
               <option value="">All</option>
               <option>Computer Science</option>
               <option>Engineering</option>
@@ -88,7 +73,7 @@
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Year</label>
-            <select id="modalYear" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <select id="year" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
               <option value="">All</option>
               <option>2025</option>
               <option>2024</option>
@@ -99,7 +84,7 @@
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Condition</label>
-            <select id="modalCondition" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <select id="condition" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
               <option value="">All</option>
               <option>New</option>
               <option>Like New</option>
@@ -108,83 +93,293 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Price</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Price Range</label>
             <div class="flex gap-2">
-              <input id="modalPriceMin" type="number" min="0" placeholder="Min" class="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-              <span class="text-gray-500">-</span>
-              <input id="modalPriceMax" type="number" min="0" placeholder="Max" class="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+              <input type="number" id="minPrice" placeholder="Min" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <input type="number" id="maxPrice" placeholder="Max" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
             </div>
           </div>
-          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 mt-4">Apply</button>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+            Apply Filters
+          </button>
+          <button type="reset" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition">
+            Reset Filters
+          </button>
         </form>
       </div>
-    </div>
-    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-      <!-- 50 Book Cards with Favorite Star -->
-      <script>
-        const books = [
-          {title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', price: 45, img: 'https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg'},
-          {title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 10, img: 'https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg'},
-          {title: 'Linear Algebra and its Applications', author: 'David C. Lay', price: 35, img: 'https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg'},
-          {title: 'Database Management Systems', author: 'Raghu Ramakrishnan', price: 40, img: 'https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg'},
-          {title: 'Clean Code', author: 'Robert C. Martin', price: 30, img: 'https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg'},
-          {title: 'The Pragmatic Programmer', author: 'Andrew Hunt', price: 32, img: 'https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg'},
-          {title: 'Design Patterns', author: 'Erich Gamma', price: 38, img: 'https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg'},
-          {title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', price: 50, img: 'https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg'},
-          {title: 'Introduction to the Theory of Computation', author: 'Michael Sipser', price: 42, img: 'https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg'},
-          {title: 'Operating System Concepts', author: 'Abraham Silberschatz', price: 44, img: 'https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg'},
-        ];
-        // Add 40 more books (dummy data)
-        for(let i=0;i<40;i++){
-          books.push({title: `Sample Book ${i+1}`, author: `Author ${i+1}`, price: 10+i, img: 'https://img.icons8.com/ios-filled/100/000000/book.png'});
-        }
-        document.write(books.map((b,idx)=>`
-          <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
-            <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Add to favorites">
-              <svg class="w-6 h-6 text-gray-300 favorite-star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/></svg>
-            </button>
-            <img src='${b.img}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
-            <div class='p-5 flex-1 flex flex-col'>
-              <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
-              <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
-              <p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
-              <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Add to Cart</button>
+
+      <!-- Main Content -->
+      <div class="md:w-3/4">
+        <!-- Search and Sort Bar -->
+        <div class="bg-white rounded-xl p-4 shadow-lg mb-6">
+          <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+              <div class="relative">
+                <input type="text" id="searchInput" placeholder="Search by Title, Author or Genre" 
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+            </div>
+            <!-- Sort -->
+            <div class="flex-shrink-0">
+              <select id="sortBy" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="priceAsc">Price: Low to High</option>
+                <option value="priceDesc">Price: High to Low</option>
+                <option value="titleAsc">Title: A to Z</option>
+                <option value="titleDesc">Title: Z to A</option>
+              </select>
             </div>
           </div>
-        `).join(''));
-      </script>
-    </div>
-    <div id="noResultsMsg" class="col-span-full text-center text-lg text-red-500 font-semibold mt-8 hidden">
-      There's nothing match with your search
+        </div>
+
+        <!-- Books Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="booksContainer">
+          <!-- Books will be loaded dynamically -->
+        </div>
+        <div id="noResultsMsg" class="hidden text-center py-8">
+          <p class="text-lg text-gray-500">No books match your search criteria</p>
+        </div>
+      </div>
     </div>
   </section>
+
   <script>
-    // Favorite star logic
-    document.addEventListener('DOMContentLoaded', function() {
-      const favBtns = document.querySelectorAll('.favorite-btn');
-      favBtns.forEach(btn => {
+    let allBooks = [];
+    let filteredBooks = [];
+
+    // Load and display books from the database
+    async function loadBooks() {
+      try {
+        // Get search parameter from URL if it exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('search');
+        if (searchQuery) {
+          document.getElementById('searchInput').value = searchQuery;
+        }
+
+        const response = await fetch('http://localhost:3001/api/books');
+        allBooks = await response.json();
+        filteredBooks = [...allBooks];
+        
+        updateBookCount();
+        applyFiltersAndSort();
+      } catch (error) {
+        console.error('Error loading books:', error);
+        document.getElementById('booksContainer').innerHTML = 
+          '<p class="col-span-full text-center text-red-500">Error loading books. Please try again later.</p>';
+      }
+    }
+
+    function updateBookCount() {
+      const count = filteredBooks.length;
+      const totalCount = allBooks.length;
+      document.getElementById('bookCount').textContent = 
+        `Showing ${count} of ${totalCount} book${totalCount !== 1 ? 's' : ''}`;
+    }
+
+    function applyFiltersAndSort() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const forWhat = document.getElementById('forWhat').value;
+      const genre = document.getElementById('genre').value;
+      const year = document.getElementById('year').value;
+      const condition = document.getElementById('condition').value;
+      const minPrice = document.getElementById('minPrice').value;
+      const maxPrice = document.getElementById('maxPrice').value;
+      const sortBy = document.getElementById('sortBy').value;
+
+      // Apply filters
+      filteredBooks = allBooks.filter(book => {
+        if (searchQuery && !book.title.toLowerCase().includes(searchQuery) && 
+            !book.author.toLowerCase().includes(searchQuery) && 
+            !book.genre.toLowerCase().includes(searchQuery)) {
+          return false;
+        }
+        if (forWhat && book.for_what !== forWhat) return false;
+        if (genre && book.genre !== genre) return false;
+        if (year && book.year.toString() !== year) return false;
+        if (condition && book.book_condition !== condition) return false;
+        if (minPrice && book.price < parseFloat(minPrice)) return false;
+        if (maxPrice && book.price > parseFloat(maxPrice)) return false;
+        return true;
+      });
+
+      // Apply sorting
+      filteredBooks.sort((a, b) => {
+        switch (sortBy) {
+          case 'newest':
+            return new Date(b.created_at) - new Date(a.created_at);
+          case 'oldest':
+            return new Date(a.created_at) - new Date(b.created_at);
+          case 'priceAsc':
+            return a.price - b.price;
+          case 'priceDesc':
+            return b.price - a.price;
+          case 'titleAsc':
+            return a.title.localeCompare(b.title);
+          case 'titleDesc':
+            return b.title.localeCompare(a.title);
+          default:
+            return 0;
+        }
+      });
+
+      updateBookCount();
+      displayBooks();
+    }
+
+    function displayBooks() {
+      const booksContainer = document.getElementById('booksContainer');
+      const noResultsMsg = document.getElementById('noResultsMsg');
+      
+      if (filteredBooks.length === 0) {
+        booksContainer.innerHTML = '';
+        noResultsMsg.classList.remove('hidden');
+        return;
+      }
+
+      noResultsMsg.classList.add('hidden');
+      booksContainer.innerHTML = filteredBooks.map((b, idx) => `
+        <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
+          <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${allBooks.indexOf(b)}" aria-label="Add to favorites">
+            <svg class="w-6 h-6 text-gray-300 favorite-star" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+            </svg>
+          </button>
+          <img src='${b.picture_url}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
+          <div class='p-5 flex-1 flex flex-col'>
+            <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
+            <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
+            <p class='text-sm text-gray-500 mb-1'>Genre: ${b.genre}</p>
+            ${b.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${b.course_code}</p>` : ''}
+            ${b.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${b.edition}</p>` : ''}
+            <p class='text-sm text-gray-500 mb-1'>Year: ${b.year}</p>
+            <p class='text-sm text-gray-500 mb-2'>Condition: ${b.book_condition}</p>
+            ${b.for_what === 'Sell' 
+              ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
+                 <button onclick="handlePurchase('${b.id}')" class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
+              : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
+                 <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
+            }
+          </div>
+        </div>
+      `).join('');
+
+      // Initialize favorite buttons
+      initializeFavoriteButtons();
+    }
+
+    function initializeFavoriteButtons() {
+      const favs = JSON.parse(localStorage.getItem('favoriteBooks') || '[]');
+      
+      document.querySelectorAll('.favorite-btn').forEach(btn => {
+        const idx = parseInt(btn.getAttribute('data-idx'));
+        const star = btn.querySelector('.favorite-star');
+        
+        // Set initial state
+        if (favs.includes(idx)) {
+          star.classList.remove('text-gray-300');
+          star.classList.add('text-orange-400');
+        }
+
         btn.addEventListener('click', function(e) {
           e.preventDefault();
-          const star = btn.querySelector('.favorite-star');
           if (star.classList.contains('text-gray-300')) {
             star.classList.remove('text-gray-300');
             star.classList.add('text-orange-400');
+            if (!favs.includes(idx)) favs.push(idx);
           } else {
             star.classList.remove('text-orange-400');
             star.classList.add('text-gray-300');
-          }
-          // Save to localStorage for favorites page
-          let favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
-          const idx = parseInt(btn.getAttribute('data-idx'));
-          if (star.classList.contains('text-orange-400')) {
-            if (!favs.includes(idx)) favs.push(idx);
-          } else {
-            favs = favs.filter(i => i !== idx);
+            const index = favs.indexOf(idx);
+            if (index > -1) favs.splice(index, 1);
           }
           localStorage.setItem('favoriteBooks', JSON.stringify(favs));
         });
       });
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      loadBooks();
+
+      // Search input
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', debounce(applyFiltersAndSort, 300));
+
+      // Filter form
+      const filterForm = document.getElementById('filterForm');
+      filterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        applyFiltersAndSort();
+      });
+      filterForm.addEventListener('reset', () => {
+        setTimeout(applyFiltersAndSort, 0);
+      });
+
+      // Sort select
+      document.getElementById('sortBy').addEventListener('change', applyFiltersAndSort);
+
+      // Individual filter changes
+      ['forWhat', 'genre', 'year', 'condition', 'minPrice', 'maxPrice'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          filterForm.dispatchEvent(new Event('submit'));
+        });
+      });
     });
+
+    // Utility function for debouncing
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Handle book purchase
+    async function handlePurchase(bookId) {
+      try {
+        const userId = localStorage.getItem('userId');
+        const response = await fetch('http://localhost:3001/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: userId,
+            bookId: bookId,
+            type: 'Purchase'
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          // Remove book from the list and update display
+          allBooks = allBooks.filter(b => b.id !== bookId);
+          filteredBooks = filteredBooks.filter(b => b.id !== bookId);
+          updateBookCount();
+          displayBooks();
+          
+          // Show success message
+          alert('Purchase successful! Check your transaction history for details.');
+        } else {
+          alert('Failed to complete purchase. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error processing purchase:', error);
+        alert('Error processing purchase. Please try again.');
+      }
+    }
   </script>
 
   <!--Call to Action-->
@@ -285,53 +480,6 @@
         sortDropdown.classList.add('hidden');
         // Here you would apply the sorting logic
       });
-    });
-  </script>
-  <script>
-    // Book search logic for buy page
-    document.addEventListener('DOMContentLoaded', function() {
-      const bookCards = Array.from(document.querySelectorAll('.max-w-7xl .bg-white.rounded-2xl'));
-      const searchInput = document.getElementById('searchInput');
-      const searchBtn = document.getElementById('searchBtn');
-      const noResultsMsg = document.getElementById('noResultsMsg');
-      function filterBooksBuy(query) {
-        const q = query.trim().toLowerCase();
-        let matchCount = 0;
-        bookCards.forEach(card => {
-          const title = card.querySelector('h3').textContent.toLowerCase();
-          const author = card.querySelector('p.text-sm').textContent.toLowerCase();
-          const isMatch = title.includes(q) || author.includes(q);
-          card.style.display = isMatch ? '' : 'none';
-          if (isMatch) matchCount++;
-        });
-        const noResultsMsg = document.getElementById('noResultsMsg');
-        if (noResultsMsg) {
-          if (matchCount === 0) {
-            noResultsMsg.classList.remove('hidden');
-          } else {
-            noResultsMsg.classList.add('hidden');
-          }
-        }
-      }
-      // Remove input event listener, only trigger on button click or Enter key
-      searchBtn.addEventListener('click', e => {
-        e.preventDefault();
-        filterBooksBuy(searchInput.value);
-      });
-      searchInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          filterBooksBuy(searchInput.value);
-        }
-      });
-      // --- NEW: Check for ?search= in URL and trigger search ---
-      const params = new URLSearchParams(window.location.search);
-      const search = params.get('search');
-      if (search) {
-        searchInput.value = decodeURIComponent(search);
-        filterBooksBuy(searchInput.value);
-      }
-      // --- END NEW ---
     });
   </script>
 </body>

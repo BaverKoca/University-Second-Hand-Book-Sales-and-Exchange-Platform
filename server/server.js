@@ -39,6 +39,25 @@ app.post('/api/login', (req, res) => {
   );
 });
 
+// Update user profile
+app.put('/api/users/update', (req, res) => {
+  const { name, faculty, department, phone, email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  dbUsers.run(
+    'UPDATE users SET name = ?, faculty = ?, department = ?, phone = ? WHERE email = ?',
+    [name, faculty, department, phone, email],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(404).json({ error: 'User not found' });
+      res.json({ success: true });
+    }
+  );
+});
+
 // Get all users (for admin/testing)
 app.get('/api/users', (req, res) => {
   dbUsers.all('SELECT name, faculty, department, phone, email FROM users', [], (err, rows) => {
@@ -78,6 +97,15 @@ app.post('/api/books', (req, res) => {
 // Get all books
 app.get('/api/books', (req, res) => {
   dbBooks.all('SELECT * FROM books', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// Get books by owner
+app.get('/api/books/user/:email', (req, res) => {
+  const { email } = req.params;
+  dbBooks.all('SELECT * FROM books WHERE owner_email = ?', [email], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });

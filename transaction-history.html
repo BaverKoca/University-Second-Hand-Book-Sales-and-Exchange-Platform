@@ -3,16 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Transaction History - TheBookMark</title>
+  <title>TheBookMark - Transaction History</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/session.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
-  <script>
-    // Redirect to login if not authenticated (run as early as possible)
-    if (!localStorage.getItem('isLoggedIn')) {
-      window.location.replace('index.html');
-    }
-  </script>
+<body class="bg-gray-50 text-gray-900">
   <script>
     // Extra protection: block rendering until authentication is checked
     (function() {
@@ -22,6 +17,8 @@
       }
     })();
   </script>
+
+  <!--Header-->
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center p-4">
       <a href="home.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
@@ -43,60 +40,83 @@
       </nav>
     </div>
   </header>
-  <main class="max-w-3xl mx-auto mt-16 bg-white p-8 rounded-xl shadow-md">
-    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Transaction History</h1>
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="bg-blue-50">
-          <th class="py-2 px-4 font-semibold">Date</th>
-          <th class="py-2 px-4 font-semibold">Book</th>
-          <th class="py-2 px-4 font-semibold">Type</th>
-          <th class="py-2 px-4 font-semibold">Amount</th>
-          <th class="py-2 px-4 font-semibold">Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="py-2 px-4">2025-05-20</td>
-          <td class="py-2 px-4">Introduction to Algorithms</td>
-          <td class="py-2 px-4">Buy</td>
-          <td class="py-2 px-4">$45.00</td>
-          <td class="py-2 px-4 text-green-600 font-semibold">Completed</td>
-        </tr>
-        <tr>
-          <td class="py-2 px-4">2025-05-10</td>
-          <td class="py-2 px-4">Database Management Systems</td>
-          <td class="py-2 px-4">Sell</td>
-          <td class="py-2 px-4">$40.00</td>
-          <td class="py-2 px-4 text-green-600 font-semibold">Completed</td>
-        </tr>
-        <tr>
-          <td class="py-2 px-4">2025-04-28</td>
-          <td class="py-2 px-4">Clean Code</td>
-          <td class="py-2 px-4">Exchange</td>
-          <td class="py-2 px-4">-</td>
-          <td class="py-2 px-4 text-yellow-600 font-semibold">Pending</td>
-        </tr>
-      </tbody>
-    </table>
-  </main>
+
+  <!--Transaction History Section-->
+  <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 text-center">Transaction History</h1>
+      <div id="transactionContainer" class="space-y-4">
+        <!-- Transactions will be loaded here -->
+      </div>
+      <div id="noTransactions" class="hidden text-center py-8">
+        <p class="text-lg text-gray-500">No transactions found</p>
+      </div>
+    </div>
+  </section>
+
+  <!--Footer-->
   <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
     <div class="flex flex-col md:flex-row justify-center items-center gap-4">
       <a href="#about" class="hover:text-blue-600">About Us</a>
       <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
     </div>
-    <div class="flex justify-center gap-6 mt-4">
-      <a href="https://www.linkedin.com/in/baver-koca" target="_blank" rel="noopener"><img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6"></a>
-      <a href="https://github.com/BaverKoca" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="h-6"></a>
-    </div>
     <div class="mt-4 text-xs text-gray-400">&copy; 2025 TheBookMark. All rights reserved.</div>
   </footer>
+
   <script>
-    // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
+    // Load user's transaction history
+    async function loadTransactionHistory() {
+      try {
+        const userId = localStorage.getItem('userId');
+        const response = await fetch(`http://localhost:3001/api/transactions/${userId}`);
+        const transactions = await response.json();
+        
+        const container = document.getElementById('transactionContainer');
+        const noTransactions = document.getElementById('noTransactions');
+        
+        if (transactions.length === 0) {
+          container.innerHTML = '';
+          noTransactions.classList.remove('hidden');
+          return;
+        }
+
+        noTransactions.classList.add('hidden');
+        container.innerHTML = transactions.map(t => `
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-lg text-blue-800">${t.book_title}</h3>
+                <p class="text-sm text-gray-600">Author: ${t.book_author}</p>
+                <p class="text-sm text-gray-600">Seller: ${t.seller_name}</p>
+                <p class="text-sm text-gray-600">Transaction Type: ${t.type}</p>
+                <p class="text-sm text-gray-600">Date: ${new Date(t.transaction_date).toLocaleDateString()}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-lg ${t.type === 'Exchange' ? 'text-green-600' : 'text-blue-600'}">
+                  ${t.type === 'Exchange' ? 'Exchange' : `$${t.price.toFixed(2)}`}
+                </p>
+                <p class="text-sm text-gray-500">Transaction ID: ${t.id}</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Error loading transaction history:', error);
+        document.getElementById('transactionContainer').innerHTML = 
+          '<p class="text-center text-red-500">Error loading transaction history. Please try again later.</p>';
+      }
+    }
+
+    // Load transactions when page loads
+    document.addEventListener('DOMContentLoaded', loadTransactionHistory);
+
+    // Profile dropdown functionality
     const profileBtn = document.getElementById('profile-menu-btn');
     const profileDropdown = document.getElementById('profile-dropdown');
     const profileMenuContainer = document.getElementById('profile-menu-container');
     let dropdownTimeout;
+
     function showDropdown() {
       clearTimeout(dropdownTimeout);
       profileDropdown.classList.remove('hidden');
@@ -106,6 +126,7 @@
         profileDropdown.classList.add('hidden');
       }, 150);
     }
+
     profileBtn.addEventListener('mouseenter', showDropdown);
     profileMenuContainer.addEventListener('mouseleave', hideDropdown);
     profileMenuContainer.addEventListener('mouseenter', showDropdown);
