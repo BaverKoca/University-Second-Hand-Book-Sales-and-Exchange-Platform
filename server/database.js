@@ -1,31 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
-const dbUsers = new sqlite3.Database(__dirname + '/users.db');
-const dbBooks = new sqlite3.Database(__dirname + '/books.db');
+// Use a single database file for both users and books
+const db = new sqlite3.Database(__dirname + '/books.db');
 
-dbUsers.serialize(() => {
-  // Users table
-  dbUsers.run(`
+// Users table
+db.serialize(() => {
+  db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       faculty TEXT NOT NULL,
-      department TEXT NOT NULL,
       phone TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL
     )
   `);
-});
 
-dbBooks.serialize(() => {
   // Books table
-  dbBooks.run(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS books (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       author TEXT NOT NULL,
       genre TEXT NOT NULL,
-      course_code TEXT,
+      faculty TEXT,
       edition TEXT,
       year INTEGER NOT NULL,
       book_condition TEXT NOT NULL,
@@ -33,18 +30,13 @@ dbBooks.serialize(() => {
       picture_url TEXT NOT NULL,
       for_what TEXT NOT NULL,
       owner_email TEXT NOT NULL,
-      status TEXT DEFAULT 'available'
+      status TEXT DEFAULT 'available',
+      desired_book TEXT
     )
-  `, (err) => {
-    if (err) {
-      console.error('Error creating books table:', err.message);
-    } else {
-      console.log('Books table ready.');
-    }
-  });
+  `);
 
   // Favorites table
-  dbBooks.run(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS favorites (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -54,10 +46,7 @@ dbBooks.serialize(() => {
       FOREIGN KEY (book_id) REFERENCES books(id),
       UNIQUE(user_id, book_id)
     )
-  `, (err) => {
-    if (err) console.error('Error creating favorites table:', err.message);
-    else console.log('Favorites table ready.');
-  });
+  `);
 });
 
-module.exports = { dbUsers, dbBooks };
+module.exports = { db };

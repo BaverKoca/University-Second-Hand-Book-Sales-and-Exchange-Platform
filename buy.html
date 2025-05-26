@@ -148,6 +148,88 @@
     </div>
   </section>
 
+  <!-- Book Details Modal -->
+  <div id="bookDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl max-w-4xl w-full mx-4 p-6 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeBookModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Left side - Image -->
+        <div class="md:w-1/2">
+          <img id="modalBookImage" src="" alt="Book cover" class="w-full h-auto object-contain rounded-lg shadow-lg">
+        </div>
+        <!-- Right side - Book Details -->
+        <div class="md:w-1/2 space-y-6">
+          <div>
+            <h2 id="modalBookTitle" class="text-3xl font-bold text-gray-900 mb-2"></h2>
+            <p id="modalBookAuthor" class="text-xl text-gray-600"></p>
+          </div>
+          
+          <div class="space-y-4 text-gray-700">
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Genre:</span>
+              <span id="modalBookGenre"></span>
+            </div>
+            <div id="modalBookFacultyContainer" class="flex items-center">
+              <span class="font-semibold w-28">Faculty:</span>
+              <span id="modalBookFaculty"></span>
+            </div>
+            <div id="modalBookEditionContainer" class="flex items-center">
+              <span class="font-semibold w-28">Edition:</span>
+              <span id="modalBookEdition"></span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Year:</span>
+              <span id="modalBookYear"></span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Condition:</span>
+              <span id="modalBookCondition"></span>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-4">
+            <div class="flex items-center mb-2">
+              <span class="font-semibold w-28">Owner:</span>
+              <span id="modalBookOwner" class="text-blue-600"></span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Owner Faculty:</span>
+              <span id="modalBookOwnerFaculty" class="text-blue-600"></span>
+            </div>
+          </div>
+
+          <div id="modalBookPriceContainer" class="hidden border-t border-gray-200 pt-4">
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Price:</span>
+              <span id="modalBookPrice" class="text-2xl font-bold text-orange-600"></span>
+            </div>
+          </div>
+
+          <div id="modalBookExchangeContainer" class="hidden border-t border-gray-200 pt-4">
+            <div class="flex items-center">
+              <span class="font-semibold w-28">Exchange For:</span>
+              <span id="modalBookExchangeFor" class="text-green-600"></span>
+            </div>
+          </div>
+
+          <div class="flex gap-4 pt-4">
+            <button id="modalFavoriteBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+              <span>Add to Favorites</span>
+            </button>
+            <button id="modalActionBtn" class="flex-1 py-2 rounded-lg font-semibold text-white"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let allBooks = [];
     let filteredBooks = [];
@@ -168,27 +250,10 @@
           document.getElementById('forWhat').value = forWhat;
         }
 
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser || !currentUser.id) {
-          window.location.href = 'index.html';
-          return;
-        }
-
-        // Check if recommendations are cached
-        const cachedRecommendations = sessionStorage.getItem('recommendedBooks');
-        
-        if (cachedRecommendations) {
-          allBooks = JSON.parse(cachedRecommendations);
-        } else {
-          // Get fresh recommendations
-          const response = await fetch(`http://localhost:3001/api/recommendations/${currentUser.id}`);
-          allBooks = await response.json();
-          // Cache the recommendations
-          sessionStorage.setItem('recommendedBooks', JSON.stringify(allBooks));
-        }
-
+        // Fetch all books from backend
+        const response = await fetch('http://localhost:3001/api/books');
+        allBooks = await response.json();
         filteredBooks = [...allBooks];
-        
         updateBookCount();
         applyFiltersAndSort();
       } catch (error) {
@@ -235,16 +300,16 @@
       filteredBooks.sort((a, b) => {
         switch (sortBy) {
           case 'featured':
-            // Use relevance_score from the recommendations
-            return (b.relevance_score || 0) - (a.relevance_score || 0);
+            // Sort by creation date for featured items
+            return new Date(b.created_at) - new Date(a.created_at);
           case 'newest':
             return new Date(b.created_at) - new Date(a.created_at);
           case 'oldest':
             return new Date(a.created_at) - new Date(b.created_at);
           case 'priceAsc':
-            return a.price - b.price;
+            return (a.price || 0) - (b.price || 0);
           case 'priceDesc':
-            return b.price - a.price;
+            return (b.price || 0) - (a.price || 0);
           case 'titleAsc':
             return a.title.localeCompare(b.title);
           case 'titleDesc':
@@ -261,33 +326,31 @@
     function displayBooks() {
       const booksContainer = document.getElementById('booksContainer');
       const noResultsMsg = document.getElementById('noResultsMsg');
-      
       if (filteredBooks.length === 0) {
         booksContainer.innerHTML = '';
         noResultsMsg.classList.remove('hidden');
         return;
       }
-
       noResultsMsg.classList.add('hidden');
       booksContainer.innerHTML = filteredBooks.map((b, idx) => `
         <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
           <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${allBooks.indexOf(b)}" aria-label="Add to favorites">
             <svg class="w-6 h-6 text-gray-300 favorite-star" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.385 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.385-2.46a1 1 0 00-1.175 0l-3.385 2.46c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118l-3.385-2.46c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95-.69l1.286-3.967z" />
             </svg>
           </button>
-          <img src='${b.picture_url}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
+          <img src="http://localhost:3001${b.picture_url}" alt="${b.title}" class="w-full h-56 object-contain bg-blue-50">
           <div class='p-5 flex-1 flex flex-col'>
             <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
             <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
             <p class='text-sm text-gray-500 mb-1'>Genre: ${b.genre}</p>
-            ${b.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${b.course_code}</p>` : ''}
+            ${b.faculty ? `<p class='text-sm text-gray-500 mb-1'>Faculty: ${b.faculty}</p>` : ''}
             ${b.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${b.edition}</p>` : ''}
             <p class='text-sm text-gray-500 mb-1'>Year: ${b.year}</p>
             <p class='text-sm text-gray-500 mb-2'>Condition: ${b.book_condition}</p>
             ${b.for_what === 'Sell' 
-              ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
-                 <button onclick="handlePurchase('${b.id}')" class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
+              ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price ? b.price.toFixed(2) : ''}</p>
+                 <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition buy-now-btn' data-book-id="${b.id}">Buy Now</button>`
               : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
                  <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
             }
@@ -295,8 +358,64 @@
         </div>
       `).join('');
 
-      // Initialize favorite buttons
-      initializeFavoriteButtons();
+      // Favorite star logic
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      fetch(`http://localhost:3001/api/favorites/${currentUser.id}`)
+        .then(res => res.json())
+        .then(favorites => {
+          const favoriteBookIds = favorites.map(f => f.id);
+          document.querySelectorAll('.favorite-btn').forEach(btn => {
+            const bookId = allBooks[parseInt(btn.getAttribute('data-idx'))].id;
+            const star = btn.querySelector('.favorite-star');
+            if (favoriteBookIds.includes(bookId)) {
+              star.classList.remove('text-gray-300');
+              star.classList.add('text-orange-400');
+            }
+            btn.addEventListener('click', async function(e) {
+              e.preventDefault();
+              try {
+                if (star.classList.contains('text-gray-300')) {
+                  // Add to favorites
+                  const response = await fetch('http://localhost:3001/api/favorites', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      userId: currentUser.id,
+                      bookId: bookId
+                    })
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-orange-400');
+                  } else {
+                    alert(result.error || 'Failed to add to favorites');
+                  }
+                } else {
+                  // Remove from favorites
+                  const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}/${bookId}`, {
+                    method: 'DELETE'
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    star.classList.remove('text-orange-400');
+                    star.classList.add('text-gray-300');
+                  } else {
+                    alert(result.error || 'Failed to remove from favorites');
+                  }
+                }
+              } catch (error) {
+                console.error('Error updating favorites:', error);
+                alert('Error updating favorites. Please try again.');
+              }
+            });
+          });
+        })
+        .catch(error => {
+          console.error('Error loading favorites:', error);
+        });
     }
 
     function initializeFavoriteButtons() {
@@ -412,6 +531,9 @@
 
     // Handle book purchase
     async function handlePurchase(bookId) {
+      const bookElement = document.querySelector(`[onclick="showBookDetails(${bookId})"]`);
+      showLoadingState(bookElement);
+      
       try {
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || !currentUser.id) {
@@ -435,22 +557,255 @@
         const result = await response.json();
         
         if (result.success) {
-          // Remove book from the display (it's now marked as sold in the database)
           allBooks = allBooks.filter(b => b.id !== parseInt(bookId));
           filteredBooks = filteredBooks.filter(b => b.id !== parseInt(bookId));
           updateBookCount();
           displayBooks();
-          
-          // Show success message
+          closeBookModal();
           alert('Purchase successful! Check your transaction history for details.');
         } else {
+          hideLoadingState(bookElement);
           alert(result.error || 'Failed to complete purchase. Please try again.');
         }
       } catch (error) {
         console.error('Error processing purchase:', error);
+        hideLoadingState(bookElement);
         alert('Error processing purchase. Please try again.');
       }
     }
+
+    function showLoadingState(element) {
+      element.querySelector('.loading-overlay')?.classList.remove('hidden');
+      element.querySelector('.loading-overlay')?.classList.add('flex');
+    }
+
+    function hideLoadingState(element) {
+      element.querySelector('.loading-overlay')?.classList.add('hidden');
+      element.querySelector('.loading-overlay')?.classList.remove('flex');
+    }
+
+    function showBookDetails(bookIndex) {
+      const book = filteredBooks[bookIndex];
+      const modal = document.getElementById('bookDetailsModal');
+      
+      // Set modal content
+      document.getElementById('modalBookImage').src = book.picture_url;
+      document.getElementById('modalBookTitle').textContent = book.title;
+      document.getElementById('modalBookAuthor').textContent = book.author;
+      document.getElementById('modalBookGenre').textContent = book.genre;
+      document.getElementById('modalBookYear').textContent = book.year;
+      document.getElementById('modalBookCondition').textContent = book.book_condition;
+      
+      // Handle faculty
+      const facultyContainer = document.getElementById('modalBookFacultyContainer');
+      if (book.faculty) {
+        facultyContainer.classList.remove('hidden');
+        document.getElementById('modalBookFaculty').textContent = book.faculty;
+      } else {
+        facultyContainer.classList.add('hidden');
+      }
+
+      // Handle edition
+      const editionContainer = document.getElementById('modalBookEditionContainer');
+      if (book.edition) {
+        editionContainer.classList.remove('hidden');
+        document.getElementById('modalBookEdition').textContent = book.edition;
+      } else {
+        editionContainer.classList.add('hidden');
+      }
+
+      // Set owner information
+      document.getElementById('modalBookOwner').textContent = book.owner_name || 'Unknown';
+      document.getElementById('modalBookOwnerFaculty').textContent = book.owner_faculty || 'Unknown';
+
+      // Handle price/exchange
+      const priceContainer = document.getElementById('modalBookPriceContainer');
+      const exchangeContainer = document.getElementById('modalBookExchangeContainer');
+      const actionBtn = document.getElementById('modalActionBtn');
+
+      if (book.for_what === 'Sell') {
+        priceContainer.classList.remove('hidden');
+        exchangeContainer.classList.add('hidden');
+        document.getElementById('modalBookPrice').textContent = `$${book.price.toFixed(2)}`;
+        actionBtn.textContent = 'Buy Now';
+        actionBtn.className = 'flex-1 py-2 rounded-lg font-semibold text-white bg-orange-500 hover:bg-orange-600';
+        actionBtn.onclick = () => handlePurchase(book.id);
+      } else {
+        priceContainer.classList.add('hidden');
+        exchangeContainer.classList.remove('hidden');
+        document.getElementById('modalBookExchangeFor').textContent = book.desired_book || 'Everything';
+        actionBtn.textContent = 'Request Exchange';
+        actionBtn.className = 'flex-1 py-2 rounded-lg font-semibold text-white bg-green-500 hover:bg-green-600';
+        actionBtn.onclick = () => handleExchange(book.id);
+      }
+
+      // Set up favorite button
+      const favoriteBtn = document.getElementById('modalFavoriteBtn');
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      fetch(`http://localhost:3001/api/favorites/${currentUser.id}`)
+        .then(res => res.json())
+        .then(favorites => {
+          const isFavorite = favorites.some(f => f.id === book.id);
+          favoriteBtn.onclick = () => toggleFavorite(book.id, favoriteBtn);
+          if (isFavorite) {
+            favoriteBtn.innerHTML = `
+              <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+              </svg>
+              <span class="text-orange-500">Remove from Favorites</span>
+            `;
+          } else {
+            favoriteBtn.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+              <span>Add to Favorites</span>
+            `;
+          }
+        });
+
+      // Show modal
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookModal() {
+      const modal = document.getElementById('bookDetailsModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('bookDetailsModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeBookModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !document.getElementById('bookDetailsModal').classList.contains('hidden')) {
+        closeBookModal();
+      }
+    });
+
+    async function toggleFavorite(bookId, button) {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (!currentUser || !currentUser.id) {
+        alert('Please log in to add favorites');
+        return;
+      }
+
+      try {
+        const isFavorite = button.querySelector('.text-orange-500');
+        if (!isFavorite) {
+          // Add to favorites
+          const response = await fetch('http://localhost:3001/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id, bookId })
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            button.innerHTML = `
+              <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+            `;
+          }
+        } else {
+          // Remove from favorites
+          const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}/${bookId}`, {
+            method: 'DELETE'
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            button.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+              <span>Add to Favorites</span>
+            `;
+          }
+        }
+      } catch (error) {
+        console.error('Error updating favorites:', error);
+        alert('Error updating favorites. Please try again.');
+      }
+    }
+
+    async function handleExchange(bookId) {
+      const bookElement = document.querySelector(`[onclick="showBookDetails(${bookId})"]`);
+      showLoadingState(bookElement);
+      
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          alert('Please log in again to request an exchange.');
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const response = await fetch('http://localhost:3001/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: currentUser.id,
+            bookId: bookId,
+            type: 'Exchange'
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          allBooks = allBooks.filter(b => b.id !== parseInt(bookId));
+          filteredBooks = filteredBooks.filter(b => b.id !== parseInt(bookId));
+          updateBookCount();
+          displayBooks();
+          closeBookModal();
+          alert('Exchange request sent successfully! The owner will contact you soon.');
+        } else {
+          hideLoadingState(bookElement);
+          alert(result.error || 'Failed to request exchange. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error processing exchange request:', error);
+        hideLoadingState(bookElement);
+        alert('Error processing exchange request. Please try again.');
+      }
+    }
+
+    // Buy Now confirmation and mark as sold logic
+    document.addEventListener('click', async function(e) {
+      if (e.target.classList.contains('buy-now-btn')) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to buy this book?')) {
+          const bookId = e.target.getAttribute('data-book-id');
+          try {
+            const response = await fetch(`http://localhost:3001/api/books/${bookId}/sold`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            if (result.success) {
+              alert('Book purchased! It will no longer appear in the listings.');
+              loadBooks();
+            } else {
+              alert(result.error || 'Failed to complete purchase.');
+            }
+          } catch (error) {
+            alert('Error processing purchase.');
+          }
+        }
+      }
+    });
   </script>
 
   <!--Call to Action-->

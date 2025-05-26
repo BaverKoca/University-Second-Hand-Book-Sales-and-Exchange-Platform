@@ -1,36 +1,66 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { dbUsers, dbBooks } = require('./database');
+const { db } = require('./database');
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Set up storage for uploaded images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
+
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// CORS: allow all origins, methods, and headers for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Simple ping endpoint for connectivity testing
+app.get('/api/ping', (req, res) => {
+  res.json({ success: true, message: 'pong' });
+});
+
 // Register user
 app.post('/api/register', (req, res) => {
-  const { name, faculty, department, phone, email, password } = req.body;
-  
-  dbUsers.run('BEGIN TRANSACTION');
-  dbUsers.run(
-    'INSERT INTO users (name, faculty, department, phone, email, password) VALUES (?, ?, ?, ?, ?, ?)',
-    [name, faculty, department, phone, email, password],
+  const { name, faculty, phone, email, password } = req.body;
+  db.run('BEGIN TRANSACTION');
+  db.run(
+    'INSERT INTO users (name, faculty, phone, email, password) VALUES (?, ?, ?, ?, ?)',
+    [name, faculty, phone, email, password],
     function (err) {
       if (err) {
-        dbUsers.run('ROLLBACK');
+        db.run('ROLLBACK');
         if (err.message.includes('UNIQUE constraint failed')) {
           return res.status(400).json({ error: 'Email already registered' });
         }
         return res.status(500).json({ error: err.message });
       }
-      
-      // Get the newly created user
-      dbUsers.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
+      db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
         if (err) {
-          dbUsers.run('ROLLBACK');
+          db.run('ROLLBACK');
           return res.status(500).json({ error: err.message });
         }
-        dbUsers.run('COMMIT');
+        db.run('COMMIT');
         res.json({ success: true, user });
       });
     }
@@ -40,7 +70,7 @@ app.post('/api/register', (req, res) => {
 // Login user
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
-  dbUsers.get(
+  db.get(
     'SELECT * FROM users WHERE email = ? AND password = ?',
     [email, password],
     (err, user) => {
@@ -53,26 +83,26 @@ app.post('/api/login', (req, res) => {
 
 // Update user profile
 app.put('/api/users/update', (req, res) => {
-  const { name, faculty, department, phone, email } = req.body;
+  const { name, faculty, phone, email } = req.body;
   
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
 
-  dbUsers.run('BEGIN TRANSACTION');
-  dbUsers.run(
-    'UPDATE users SET name = ?, faculty = ?, department = ?, phone = ? WHERE email = ?',
-    [name, faculty, department, phone, email],
+  db.run('BEGIN TRANSACTION');
+  db.run(
+    'UPDATE users SET name = ?, faculty = ?, phone = ? WHERE email = ?',
+    [name, faculty, phone, email],
     function(err) {
       if (err) {
-        dbUsers.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(500).json({ error: err.message });
       }
       if (this.changes === 0) {
-        dbUsers.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(404).json({ error: 'User not found' });
       }
-      dbUsers.run('COMMIT');
+      db.run('COMMIT');
       res.json({ success: true });
     }
   );
@@ -81,7 +111,7 @@ app.put('/api/users/update', (req, res) => {
 // Get user's favorites
 app.get('/api/favorites/:userId', (req, res) => {
   const userId = req.params.userId;
-  dbBooks.all(`
+  db.all(`
     SELECT b.*, f.id as favorite_id 
     FROM favorites f
     JOIN books b ON f.book_id = b.id
@@ -104,35 +134,35 @@ app.post('/api/favorites', (req, res) => {
     return res.status(400).json({ error: 'User ID and Book ID are required' });
   }
 
-  dbBooks.serialize(() => {
-    dbBooks.run('BEGIN TRANSACTION');
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
     
     // Check if book exists and is available
-    dbBooks.get('SELECT id FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
+    db.get('SELECT id FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
       if (err) {
         console.error('Error checking book:', err);
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(500).json({ error: err.message });
       }
       if (!book) {
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(404).json({ error: 'Book not found or not available' });
       }
 
       // Add to favorites
-      dbBooks.run(
+      db.run(
         'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
         [userId, bookId],
         function(err) {
           if (err) {
             console.error('Error adding favorite:', err);
-            dbBooks.run('ROLLBACK');
+            db.run('ROLLBACK');
             if (err.message.includes('UNIQUE constraint failed')) {
               return res.status(400).json({ error: 'Book already in favorites' });
             }
             return res.status(500).json({ error: err.message });
           }
-          dbBooks.run('COMMIT');
+          db.run('COMMIT');
           res.json({ success: true, id: this.lastID });
         }
       );
@@ -144,20 +174,20 @@ app.post('/api/favorites', (req, res) => {
 app.delete('/api/favorites/:userId/:bookId', (req, res) => {
   const { userId, bookId } = req.params;
   
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
+  db.run('BEGIN TRANSACTION');
+  db.run(
     'DELETE FROM favorites WHERE user_id = ? AND book_id = ?',
     [userId, bookId],
     function(err) {
       if (err) {
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(500).json({ error: err.message });
       }
       if (this.changes === 0) {
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(404).json({ error: 'Favorite not found' });
       }
-      dbBooks.run('COMMIT');
+      db.run('COMMIT');
       res.json({ success: true });
     }
   );
@@ -167,70 +197,97 @@ app.delete('/api/favorites/:userId/:bookId', (req, res) => {
 app.put('/api/books/:bookId/sold', (req, res) => {
   const { bookId } = req.params;
   
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
+  db.run('BEGIN TRANSACTION');
+  db.run(
     'UPDATE books SET status = ? WHERE id = ?',
     ['sold', bookId],
     function(err) {
       if (err) {
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(500).json({ error: err.message });
       }
       if (this.changes === 0) {
-        dbBooks.run('ROLLBACK');
+        db.run('ROLLBACK');
         return res.status(404).json({ error: 'Book not found' });
       }
       
       // Also remove from all users' favorites
-      dbBooks.run('DELETE FROM favorites WHERE book_id = ?', [bookId], function(err) {
+      db.run('DELETE FROM favorites WHERE book_id = ?', [bookId], function(err) {
         if (err) {
-          dbBooks.run('ROLLBACK');
+          db.run('ROLLBACK');
           return res.status(500).json({ error: err.message });
         }
-        dbBooks.run('COMMIT');
+        db.run('COMMIT');
         res.json({ success: true });
       });
     }
   );
 });
 
-// Add a new book
-app.post('/api/books', (req, res) => {
-  const {
-    title, author, genre, faculty, edition, year,
-    book_condition, price, picture_url, for_what, owner_email
-  } = req.body;
+// Add a new book (with image upload)
+app.post('/api/books', (req, res, next) => {
+  // Debug: log request headers and content-type
+  console.log('POST /api/books headers:', req.headers);
+  next();
+}, upload.single('image'), (req, res) => {
+  try {
+    // Debug: log file and body
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    const {
+      title, author, genre, faculty, edition, year,
+      book_condition, price, for_what, owner_email, desired_book
+    } = req.body;
+    const picture_url = req.file ? `/uploads/${req.file.filename}` : null;
 
-  if (!title || !author || !genre || !year || !book_condition || !picture_url || !for_what || !owner_email) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  if (genre === 'education' && !faculty) {
-    return res.status(400).json({ error: 'Faculty required for Education genre' });
-  }
-  if (for_what === 'Sell' && (price === undefined || price === null || price === '')) {
-    return res.status(400).json({ error: 'Price required for selling' });
-  }
-
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
-    `INSERT INTO books (title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
-    function (err) {
-      if (err) {
-        dbBooks.run('ROLLBACK');
-        return res.status(500).json({ error: err.message });
-      }
-      dbBooks.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
+    if (!title || !author || !genre || !year || !book_condition || !picture_url || !for_what || !owner_email) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
-  );
+    if (genre === 'education' && !faculty) {
+      return res.status(400).json({ error: 'Faculty required for Education genre' });
+    }
+    if (for_what === 'Sell' && (price === undefined || price === null || price === '')) {
+      return res.status(400).json({ error: 'Price required for selling' });
+    }
+
+    db.run('BEGIN TRANSACTION');
+    db.run(
+      `INSERT INTO books (
+        title, author, genre, faculty, edition, year,
+        book_condition, price, picture_url, for_what,
+        owner_email, status, desired_book
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+      [
+        title, author, genre, faculty, edition, year,
+        book_condition, price, picture_url, for_what,
+        owner_email, 'available', desired_book || null
+      ],
+      function (err) {
+        if (err) {
+          db.run('ROLLBACK');
+          console.error('DB error:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        db.run('COMMIT');
+        res.json({ success: true, id: this.lastID });
+      }
+    );
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get all available books
 app.get('/api/books', (req, res) => {
-  const query = 'SELECT * FROM books WHERE status = ? ORDER BY id DESC';
-  dbBooks.all(query, ['available'], (err, books) => {
+  const query = `
+    SELECT b.*, u.name as owner_name, u.faculty as owner_faculty 
+    FROM books b 
+    LEFT JOIN users u ON b.owner_email = u.email 
+    WHERE b.status = ? 
+    ORDER BY b.created_at DESC
+  `;
+  db.all(query, ['available'], (err, books) => {
     if (err) {
       console.error('Error fetching books:', err.message);
       return res.status(500).json({ error: err.message });
@@ -244,7 +301,7 @@ app.get('/api/recommendations/:userId', (req, res) => {
   const { userId } = req.params;
   
   // Get user's faculty
-  dbUsers.get('SELECT faculty FROM users WHERE id = ?', [userId], (err, user) => {
+  db.get('SELECT faculty FROM users WHERE id = ?', [userId], (err, user) => {
     if (err) {
       console.error('Error getting user faculty:', err);
       return res.status(500).json({ error: err.message });
@@ -254,17 +311,18 @@ app.get('/api/recommendations/:userId', (req, res) => {
     }
 
     // Get user's favorites and faculty books
-    dbBooks.all(`
-      SELECT DISTINCT b.*, 
+    db.all(`
+      SELECT DISTINCT b.*, u.name as owner_name, u.faculty as owner_faculty,
              CASE 
                WHEN f.user_id IS NOT NULL THEN 2  -- Favorite books get higher priority
                WHEN b.faculty = ? THEN 1  -- Faculty books get medium priority
                ELSE 0  -- Other books get lowest priority
              END as relevance_score
       FROM books b
+      LEFT JOIN users u ON b.owner_email = u.email
       LEFT JOIN favorites f ON b.id = f.book_id AND f.user_id = ?
       WHERE b.status = 'available'
-      ORDER BY relevance_score DESC, b.id DESC
+      ORDER BY relevance_score DESC, b.created_at DESC
     `, [user.faculty, userId], (err, books) => {
       if (err) {
         console.error('Error getting recommended books:', err);
@@ -272,6 +330,73 @@ app.get('/api/recommendations/:userId', (req, res) => {
       }
       res.json(books || []);
     });
+  });
+});
+
+// Get user by email
+app.get('/api/users/by-email/:email', (req, res) => {
+  const { email } = req.params;
+  
+  db.get(
+    'SELECT name, faculty FROM users WHERE email = ?',
+    [email],
+    (err, user) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      res.json(user);
+    }
+  );
+});
+
+// Handle book transactions (purchase/exchange)
+app.post('/api/transactions', async (req, res) => {
+  const { userId, bookId, type } = req.body;
+
+  if (!userId || !bookId || !type) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // First check if the book is still available
+    db.get('SELECT * FROM books WHERE id = ? AND status = ?', [bookId, 'available'], async (err, book) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!book) {
+        return res.status(404).json({ error: 'Book not available' });
+      }
+
+      // Mark the book as sold/exchanged
+      db.run('BEGIN TRANSACTION');
+      db.run('UPDATE books SET status = ? WHERE id = ?', ['sold', bookId], function(err) {
+        if (err) {
+          db.run('ROLLBACK');
+          return res.status(500).json({ error: err.message });
+        }
+
+        // Remove from all favorites since it's no longer available
+        db.run('DELETE FROM favorites WHERE book_id = ?', [bookId], function(err) {
+          if (err) {
+            db.run('ROLLBACK');
+            return res.status(500).json({ error: err.message });
+          }
+          db.run('COMMIT');
+          res.json({ success: true });
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Transaction error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a book (when sold)
+app.delete('/api/books/:id', (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM books WHERE id = ?', [id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
   });
 });
 
