@@ -364,6 +364,15 @@
         alert(error.message || 'Error listing book');
       }
     });
+
+    // Sign out logic
+    document.querySelectorAll('a[href="index.html"]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear();
+      });
+    });
   </script>
 </body>
 </html>

@@ -297,6 +297,16 @@
         hideAboutModal();
       }
     });
+
+    // Sign out logic
+    document.querySelectorAll('a[href="index.html"]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        // Remove login state and user info
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear();
+      });
+    });
   </script>
 
 </body>
