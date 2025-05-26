@@ -50,13 +50,12 @@
   <section class="text-center py-16 px-4">
     <h1 class="text-4xl font-bold mb-6">Find, Sell, or Exchange Your Books Easily</h1>
     <div class="max-w-xl mx-auto">
-      <div class="flex items-center border rounded-full px-4 py-2 shadow-sm bg-white">
-        <input type="text" id="homeSearchInput" placeholder="Search by Title, Author or Genre" class="flex-1 outline-none p-2 text-gray-700">
-        <button id="homeSearchBtn">
-          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1117.5 3a7.5 7.5 0 010 15z"/>
-          </svg>
-        </button>
+      <div class="relative">
+        <input type="text" id="homeSearchInput" placeholder="Search by Title, Author or Genre" 
+          class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm bg-white">
+        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
       </div>
     </div>
   </section>
@@ -71,68 +70,8 @@
         </svg>
       </button>
       <div id="carousel-track" class="overflow-hidden">
-        <div class="flex transition-transform duration-500" style="will-change: transform;">
-          <!-- 10 Book Cards -->
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg" alt="Introduction to Algorithms" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Introduction to Algorithms</h3>
-            <p class="text-sm text-gray-600">Thomas H. Cormen</p>
-            <p class="mt-2 font-semibold">$45.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg" alt="The Great Gatsby" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">The Great Gatsby</h3>
-            <p class="text-sm text-gray-600">F. Scott Fitzgerald</p>
-            <p class="mt-2 font-semibold">$10.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg" alt="Linear Algebra" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Linear Algebra and its Applications</h3>
-            <p class="text-sm text-gray-600">David C. Lay</p>
-            <p class="mt-2 font-semibold">$35.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg" alt="Database Management Systems" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Database Management Systems</h3>
-            <p class="text-sm text-gray-600">Raghu Ramakrishnan</p>
-            <p class="mt-2 font-semibold">$40.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg" alt="Clean Code" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Clean Code</h3>
-            <p class="text-sm text-gray-600">Robert C. Martin</p>
-            <p class="mt-2 font-semibold">$30.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg" alt="The Pragmatic Programmer" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">The Pragmatic Programmer</h3>
-            <p class="text-sm text-gray-600">Andrew Hunt</p>
-            <p class="mt-2 font-semibold">$32.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg" alt="Design Patterns" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Design Patterns</h3>
-            <p class="text-sm text-gray-600">Erich Gamma</p>
-            <p class="mt-2 font-semibold">$38.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg" alt="Artificial Intelligence" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Artificial Intelligence: A Modern Approach</h3>
-            <p class="text-sm text-gray-600">Stuart Russell</p>
-            <p class="mt-2 font-semibold">$50.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg" alt="Introduction to the Theory of Computation" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Introduction to the Theory of Computation</h3>
-            <p class="text-sm text-gray-600">Michael Sipser</p>
-            <p class="mt-2 font-semibold">$42.00</p>
-          </div>
-          <div class="text-center min-w-[250px] max-w-xs mx-2">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg" alt="Operating System Concepts" class="mx-auto mb-4 h-48 object-contain">
-            <h3 class="font-semibold">Operating System Concepts</h3>
-            <p class="text-sm text-gray-600">Abraham Silberschatz</p>
-            <p class="mt-2 font-semibold">$44.00</p>
-          </div>
+        <div id="carousel-container" class="flex transition-transform duration-500" style="will-change: transform;">
+          <!-- Books will be loaded dynamically -->
         </div>
       </div>
       <button id="carousel-right" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white border rounded-full shadow p-2 z-10 hover:bg-blue-100 transition">
@@ -142,51 +81,6 @@
       </button>
     </div>
   </section>
-  <script>
-    // Carousel logic
-    const track = document.querySelector('#carousel-track > div');
-    const leftBtn = document.getElementById('carousel-left');
-    const rightBtn = document.getElementById('carousel-right');
-    let index = 0;
-    const visible = 4;
-    const total = 10;
-    function updateCarousel() {
-      track.style.transform = `translateX(-${index * 260}px)`;
-    }
-    rightBtn.onclick = function() {
-      index = (index + 1) % (total - visible + 1);
-      updateCarousel();
-    };
-    leftBtn.onclick = function() {
-      index = (index - 1 + (total - visible + 1)) % (total - visible + 1);
-      updateCarousel();
-    };
-    setInterval(() => {
-      rightBtn.click();
-    }, 3000);
-
-    // Home page search redirect logic
-    const homeSearchInput = document.getElementById('homeSearchInput');
-    const homeSearchBtn = document.getElementById('homeSearchBtn');
-    if (homeSearchInput && homeSearchBtn) {
-      function goToBuyWithQuery() {
-        const q = encodeURIComponent(homeSearchInput.value.trim());
-        if (q) {
-          window.location.href = `buy.html?search=${q}`;
-        }
-      }
-      homeSearchBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        goToBuyWithQuery();
-      });
-      homeSearchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          goToBuyWithQuery();
-        }
-      });
-    }
-  </script>
 
   <!--Call to Action-->
   <section class="mt-16 text-center">
@@ -227,7 +121,7 @@
 
         With a clean design, user-friendly interface, and secure infrastructure, our platform aims to turn textbook transactions into more than just trades — we want to foster a sense of student community and collaboration.
 
-        This project is more than just a technical exercise for us; it's a real-world solution to a real student problem. We’re committed to continuously improving our platform based on user feedback and evolving needs.
+        This project is more than just a technical exercise for us; it's a real-world solution to a real student problem. We're committed to continuously improving our platform based on user feedback and evolving needs.
       </div>
       <div class="mb-2 px-2 md:px-6">
         <h3 class="text-lg font-bold text-blue-600 mb-1">Our Team</h3>
@@ -252,25 +146,74 @@
     }
   </style>
   <script>
-    // About Us Modal functionality
-    document.getElementById('about-us-btn').onclick = function(e) {
-      e.preventDefault();
-      document.getElementById('about-modal').classList.remove('hidden');
-    };
-    document.getElementById('close-about-modal').onclick = function() {
-      document.getElementById('about-modal').classList.add('hidden');
-    };
-    window.onclick = function(event) {
-      const modal = document.getElementById('about-modal');
-      if (event.target === modal) {
-        modal.classList.add('hidden');
+    // Load featured books from database
+    async function loadFeaturedBooks() {
+      try {
+        const response = await fetch('http://localhost:3001/api/books');
+        const books = await response.json();
+        
+        const carouselContainer = document.getElementById('carousel-container');
+        
+        if (books.length === 0) {
+          carouselContainer.innerHTML = '<p class="text-center text-gray-500 w-full">No books available at the moment.</p>';
+          return;
+        }
+
+        // Get random featured books
+        const featuredBooks = books.sort(() => 0.5 - Math.random()).slice(0, 10);
+
+        carouselContainer.innerHTML = featuredBooks.map((b, idx) => `
+          <div class='text-center min-w-[250px] max-w-xs mx-2'>
+            <img src='${b.picture_url}' alt='${b.title}' class='mx-auto mb-4 h-48 object-contain'>
+            <h3 class='font-semibold'>${b.title}</h3>
+            <p class='text-sm text-gray-600'>${b.author}</p>
+            ${b.for_what === 'Sell' 
+              ? `<p class='mt-2 font-semibold'>$${b.price.toFixed(2)}</p>`
+              : `<p class='mt-2 font-semibold text-green-600'>Available for Exchange</p>`
+            }
+          </div>
+        `).join('');
+
+        // Initialize carousel
+        let currentPosition = 0;
+        const itemWidth = 250 + 16; // width + margin
+        const maxPosition = -(featuredBooks.length * itemWidth - carouselContainer.parentElement.offsetWidth);
+
+        document.getElementById('carousel-left').addEventListener('click', () => {
+          currentPosition = Math.min(currentPosition + itemWidth * 3, 0);
+          carouselContainer.style.transform = `translateX(${currentPosition}px)`;
+        });
+
+        document.getElementById('carousel-right').addEventListener('click', () => {
+          currentPosition = Math.max(currentPosition - itemWidth * 3, maxPosition);
+          carouselContainer.style.transform = `translateX(${currentPosition}px)`;
+        });
+
+      } catch (error) {
+        console.error('Error loading featured books:', error);
+        document.getElementById('carousel-container').innerHTML = 
+          '<p class="text-center text-red-500 w-full">Error loading books. Please try again later.</p>';
       }
-    };
-    // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
+    }
+
+    // Load featured books when page loads
+    document.addEventListener('DOMContentLoaded', loadFeaturedBooks);
+
+    // Home page search functionality
+    document.getElementById('homeSearchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const searchQuery = this.value.trim();
+        if (searchQuery) {
+          window.location.href = `buy.html?search=${encodeURIComponent(searchQuery)}`;
+        }
+      }
+    });
+
+    // Profile dropdown functionality
     const profileBtn = document.getElementById('profile-menu-btn');
     const profileDropdown = document.getElementById('profile-dropdown');
     const profileMenuContainer = document.getElementById('profile-menu-container');
-
     let dropdownTimeout;
 
     function showDropdown() {
@@ -292,7 +235,6 @@
     });
     profileDropdown.addEventListener('mouseenter', showDropdown);
     profileDropdown.addEventListener('mouseleave', hideDropdown);
-    // Hide dropdown when clicking outside
     document.addEventListener('click', function(e) {
       if (!profileMenuContainer.contains(e.target)) {
         profileDropdown.classList.add('hidden');
