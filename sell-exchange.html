@@ -283,17 +283,6 @@
     // Form submission handling
     const userEmail = JSON.parse(localStorage.getItem('currentUser'))?.email;
 
-    async function handleImageUpload(file) {
-      // In a real application, you would upload to a server/cloud storage
-      // For now, we'll use a data URL
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
     sellForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       if (!userEmail) {
@@ -301,36 +290,28 @@
         window.location.href = 'index.html';
         return;
       }
-
       try {
+        const formData = new FormData();
+        formData.append('title', this.querySelector('input[placeholder="Enter your book title"]').value);
+        formData.append('author', this.querySelector('input[placeholder="Enter author name"]').value);
+        formData.append('genre', document.getElementById('sellGenre').value);
+        formData.append('faculty', this.querySelector('#sellCourseCodeDiv select')?.value || '');
+        formData.append('edition', this.querySelector('input[placeholder="Enter edition (optional)"]').value || '');
+        formData.append('year', this.querySelector('input[type="number"][placeholder="Enter year"]').value);
+        formData.append('book_condition', this.querySelector('select[required]').value);
+        formData.append('price', this.querySelector('input[placeholder="Enter price"]').value);
+        formData.append('for_what', 'Sell');
+        formData.append('owner_email', userEmail);
         const imageFile = this.querySelector('input[type="file"]').files[0];
         if (!imageFile) {
           alert('Please select an image');
           return;
         }
-
-        const picture_url = await handleImageUpload(imageFile);
-        
-        const bookData = {
-          title: this.querySelector('input[placeholder="Enter your book title"]').value,
-          author: this.querySelector('input[placeholder="Enter author name"]').value,
-          genre: document.getElementById('sellGenre').value,
-          faculty: this.querySelector('#sellCourseCodeDiv select')?.value || null,
-          edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
-          year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
-          book_condition: this.querySelector('select[required]').value,
-          price: parseFloat(this.querySelector('input[placeholder="Enter price"]').value),
-          picture_url,
-          for_what: 'Sell',
-          owner_email: userEmail
-        };
-
+        formData.append('image', imageFile);
         const response = await fetch('http://localhost:3001/api/books', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bookData)
+          body: formData
         });
-
         const result = await response.json();
         if (result.success) {
           alert('Book listed successfully!');
@@ -350,36 +331,28 @@
         window.location.href = 'index.html';
         return;
       }
-
       try {
+        const formData = new FormData();
+        formData.append('title', this.querySelector('input[placeholder="Enter your book title"]').value);
+        formData.append('author', this.querySelector('input[placeholder="Enter author name"]').value);
+        formData.append('genre', document.getElementById('exchangeGenre').value);
+        formData.append('faculty', this.querySelector('#exchangeCourseCodeDiv select')?.value || '');
+        formData.append('edition', this.querySelector('input[placeholder="Enter edition (optional)"]').value || '');
+        formData.append('year', this.querySelector('input[type="number"][placeholder="Enter year"]').value);
+        formData.append('book_condition', this.querySelector('select[required]').value);
+        formData.append('for_what', 'Exchange');
+        formData.append('owner_email', userEmail);
+        formData.append('desired_book', this.querySelector('input[placeholder="Enter desired book title (optional)"]').value || '');
         const imageFile = this.querySelector('input[type="file"]').files[0];
         if (!imageFile) {
           alert('Please select an image');
           return;
         }
-
-        const picture_url = await handleImageUpload(imageFile);
-        
-        const bookData = {
-          title: this.querySelector('input[placeholder="Enter your book title"]').value,
-          author: this.querySelector('input[placeholder="Enter author name"]').value,
-          genre: document.getElementById('exchangeGenre').value,
-          faculty: this.querySelector('#exchangeCourseCodeDiv select')?.value || null,
-          edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
-          year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
-          book_condition: this.querySelector('select[required]').value,
-          price: null,
-          picture_url,
-          for_what: 'Exchange',
-          owner_email: userEmail
-        };
-
+        formData.append('image', imageFile);
         const response = await fetch('http://localhost:3001/api/books', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bookData)
+          body: formData
         });
-
         const result = await response.json();
         if (result.success) {
           alert('Book listed successfully!');

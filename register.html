@@ -45,12 +45,6 @@
           <option value="Tourism">Tourism</option>
         </select>
       </div>
-      <div id="departmentDiv" style="display:none;">
-        <label for="department" class="block text-sm font-semibold text-gray-700 mb-1">Department <span class="text-red-500">*</span></label>
-        <select id="department" name="department" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800">
-          <option value="">Choose Department</option>
-        </select>
-      </div>
       <div>
         <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
         <input type="tel" id="phone" name="phone" required pattern="^\+?[0-9\s-]{10,15}$"
@@ -90,9 +84,6 @@
   </div>
 
   <script>
-    
-  </script>
-  <script>
     // EMU email and password validation
     const form = document.getElementById('register-form');
     const emailInput = document.getElementById('email');
@@ -104,7 +95,9 @@
     const phoneError = document.getElementById('phone-error');
 
     form.addEventListener('submit', function(e) {
+      e.preventDefault();
       let valid = true;
+
       // Email validation
       const emuPattern = /^[a-zA-Z0-9._%+-]+@emu\.edu\.tr$/;
       if (!emuPattern.test(emailInput.value)) {
@@ -113,6 +106,7 @@
       } else {
         emailError.classList.add('hidden');
       }
+
       // Password match validation
       if (passwordInput.value !== confirmPasswordInput.value) {
         passwordError.classList.remove('hidden');
@@ -120,6 +114,7 @@
       } else {
         passwordError.classList.add('hidden');
       }
+
       // Phone validation
       const phonePattern = /^\+?[0-9\s-]{10,15}$/;
       if (!phonePattern.test(phoneInput.value)) {
@@ -128,19 +123,20 @@
       } else {
         phoneError.classList.add('hidden');
       }
+
       if (!valid) {
-        e.preventDefault();
         return;
       }
+
       // Save user to backend database
       const user = {
         name: document.getElementById('name').value.trim(),
         faculty: document.getElementById('faculty').value,
-        department: document.getElementById('department').value,
         phone: document.getElementById('phone').value.trim(),
         email: document.getElementById('email').value.trim(),
         password: document.getElementById('password').value
       };
+
       fetch('http://localhost:3001/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,83 +153,6 @@
         }
       })
       .catch(() => alert('Could not connect to server.'));
-      e.preventDefault();
-    });
-
-    const facultyDepartments = {
-      'Dentistry': ['Dentistry'],
-      'Pharmacy': ['Pharmacy'],
-      'Education': [
-        'Computer Education and Instructional Technology',
-        'Educational Sciences',
-        'Elementary Education',
-        'Secondary School Science and Mathematics Education',
-        'Turkish and Social Sciences Education',
-        'Foreign Language Education'
-      ],
-      'Arts and Sciences': [
-        'Actuarial Sciences',
-        'Statistics and Computer Science',
-        'Chemistry',
-        'Mathematics and Computer Science',
-        'Molecular Biology and Genetics',
-        'Psychology',
-        'Sociology',
-        'Turkish Language and Literature'
-      ],
-      'Law': ['Law'],
-      'Communication and Media Studies': [
-        'Journalism',
-        'Public Relations and Advertising',
-        'Radio, Television and Cinema'
-      ],
-      'Business and Economics': [
-        'Banking and Finance',
-        'Economics',
-        'Human Resources Management',
-        'Business Administration',
-        'Public Administration',
-        'International Relations'
-      ],
-      'Architecture': [
-        'Interior Architecture',
-        'Architecture'
-      ],
-      'Engineering': [
-        'Computer Engineering',
-        'Electrical and Electronic Engineering',
-        'Industrial Engineering',
-        'Civil Engineering',
-        'Mechanical Engineering',
-        'Mechatronics Engineering'
-      ],
-      'Health Sciences': [
-        'Nutrition and Dietetics',
-        'Physiotherapy and Rehabilitation',
-        'Nursing'
-      ],
-      'Medicine': ['Medicine'],
-      'Tourism': [
-        'Gastronomy and Culinary Arts',
-        'Tourism and Hospitality Management'
-      ]
-    };
-    document.getElementById('faculty').addEventListener('change', function() {
-      const faculty = this.value;
-      const departmentDiv = document.getElementById('departmentDiv');
-      const departmentSelect = document.getElementById('department');
-      departmentSelect.innerHTML = '<option value="">Choose Department</option>';
-      if (faculty && facultyDepartments[faculty]) {
-        facultyDepartments[faculty].forEach(dep => {
-          const opt = document.createElement('option');
-          opt.value = dep;
-          opt.textContent = dep;
-          departmentSelect.appendChild(opt);
-        });
-        departmentDiv.style.display = '';
-      } else {
-        departmentDiv.style.display = 'none';
-      }
     });
   </script>
 
