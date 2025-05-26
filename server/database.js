@@ -18,56 +18,29 @@ dbUsers.serialize(() => {
 });
 
 dbBooks.serialize(() => {
-  // Drop existing books table to recreate with new schema
-  dbBooks.run(`DROP TABLE IF EXISTS books`, (err) => {
-    if (err) {
-      console.error('Error dropping books table:', err.message);
-      return;
-    }
-
-    // Create books table with status column
-    dbBooks.run(`
-      CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        author TEXT NOT NULL,
-        genre TEXT NOT NULL,
-        course_code TEXT,
-        edition TEXT,
-        year INTEGER NOT NULL,
-        book_condition TEXT NOT NULL,
-        price REAL,
-        picture_url TEXT NOT NULL,
-        for_what TEXT NOT NULL,
-        owner_email TEXT NOT NULL,
-        status TEXT DEFAULT 'available'
-      )
-    `, (err) => {
-      if (err) {
-        console.error('Error creating books table:', err.message);
-      } else {
-        console.log('Books table created successfully with status column.');
-      }
-    });
-  });
-
-  // Transactions table
+  // Books table
   dbBooks.run(`
-    CREATE TABLE IF NOT EXISTS transactions (
+    CREATE TABLE IF NOT EXISTS books (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      book_id INTEGER NOT NULL,
-      buyer_id INTEGER NOT NULL,
-      seller_id INTEGER NOT NULL,
-      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      author TEXT NOT NULL,
+      genre TEXT NOT NULL,
+      course_code TEXT,
+      edition TEXT,
+      year INTEGER NOT NULL,
+      book_condition TEXT NOT NULL,
       price REAL,
-      transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (book_id) REFERENCES books(id),
-      FOREIGN KEY (buyer_id) REFERENCES users(id),
-      FOREIGN KEY (seller_id) REFERENCES users(id)
+      picture_url TEXT NOT NULL,
+      for_what TEXT NOT NULL,
+      owner_email TEXT NOT NULL,
+      status TEXT DEFAULT 'available'
     )
   `, (err) => {
-    if (err) console.error('Error creating transactions table:', err.message);
-    else console.log('Transactions table ready.');
+    if (err) {
+      console.error('Error creating books table:', err.message);
+    } else {
+      console.log('Books table ready.');
+    }
   });
 
   // Favorites table

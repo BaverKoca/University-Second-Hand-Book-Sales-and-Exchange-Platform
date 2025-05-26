@@ -33,7 +33,6 @@
           <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
             <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
             <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
-            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
             <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
           </div>
         </div>
@@ -284,11 +283,11 @@
           const favoriteBookIds = favorites.map(f => f.id);
           
           document.querySelectorAll('.favorite-btn').forEach(btn => {
-            const bookId = btn.getAttribute('data-idx');
+            const bookId = allBooks[parseInt(btn.getAttribute('data-idx'))].id;
             const star = btn.querySelector('.favorite-star');
             
             // Set initial state
-            if (favoriteBookIds.includes(parseInt(bookId))) {
+            if (favoriteBookIds.includes(bookId)) {
               star.classList.remove('text-gray-300');
               star.classList.add('text-orange-400');
             }

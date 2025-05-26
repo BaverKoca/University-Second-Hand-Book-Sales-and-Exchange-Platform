@@ -150,7 +150,7 @@
       .then(data => {
         if (data.success) {
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('currentUser', JSON.stringify(user));
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
           window.location.href = 'home.html';
         } else {
           alert(data.error || 'Registration failed');

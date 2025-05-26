@@ -23,8 +23,16 @@ app.post('/api/register', (req, res) => {
         }
         return res.status(500).json({ error: err.message });
       }
-      dbUsers.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
+      
+      // Get the newly created user
+      dbUsers.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
+        if (err) {
+          dbUsers.run('ROLLBACK');
+          return res.status(500).json({ error: err.message });
+        }
+        dbUsers.run('COMMIT');
+        res.json({ success: true, user });
+      });
     }
   );
 });
@@ -70,71 +78,89 @@ app.put('/api/users/update', (req, res) => {
   );
 });
 
-// Get user's transactions
-app.get('/api/transactions/:userId', (req, res) => {
+// Get user's favorites
+app.get('/api/favorites/:userId', (req, res) => {
   const userId = req.params.userId;
   dbBooks.all(`
-    SELECT t.*, b.*, u.name as seller_name
-    FROM transactions t
-    JOIN books b ON t.book_id = b.id
-    JOIN users u ON t.seller_id = u.id
-    WHERE t.buyer_id = ?
-    ORDER BY t.transaction_date DESC
-  `, [userId], (err, transactions) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(transactions);
+    SELECT b.*, f.id as favorite_id 
+    FROM favorites f
+    JOIN books b ON f.book_id = b.id
+    WHERE f.user_id = ? AND b.status = ?
+    ORDER BY f.created_at DESC
+  `, [userId, 'available'], (err, favorites) => {
+    if (err) {
+      console.error('Error fetching favorites:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(favorites || []);
   });
 });
 
-// Create new transaction
-app.post('/api/transactions', (req, res) => {
-  const { userId, bookId, type } = req.body;
+// Add to favorites
+app.post('/api/favorites', (req, res) => {
+  const { userId, bookId } = req.body;
   
-  dbBooks.run('BEGIN TRANSACTION');
-  
-  // First get the book details to get the seller and price
-  dbBooks.get('SELECT * FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
-    if (err) {
-      dbBooks.run('ROLLBACK');
-      return res.status(500).json({ error: err.message });
-    }
-    if (!book) {
-      dbBooks.run('ROLLBACK');
-      return res.status(404).json({ error: 'Book not found or already sold' });
-    }
+  if (!userId || !bookId) {
+    return res.status(400).json({ error: 'User ID and Book ID are required' });
+  }
 
-    // Get seller's user ID
-    dbUsers.get('SELECT id FROM users WHERE email = ?', [book.owner_email], (err, seller) => {
-      if (err || !seller) {
+  dbBooks.serialize(() => {
+    dbBooks.run('BEGIN TRANSACTION');
+    
+    // Check if book exists and is available
+    dbBooks.get('SELECT id FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
+      if (err) {
+        console.error('Error checking book:', err);
         dbBooks.run('ROLLBACK');
-        return res.status(500).json({ error: 'Seller not found' });
+        return res.status(500).json({ error: err.message });
+      }
+      if (!book) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Book not found or not available' });
       }
 
-      // Create the transaction
+      // Add to favorites
       dbBooks.run(
-        `INSERT INTO transactions (book_id, buyer_id, seller_id, type, price)
-         VALUES (?, ?, ?, ?, ?)`,
-        [bookId, userId, seller.id, type, book.price],
+        'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
+        [userId, bookId],
         function(err) {
           if (err) {
+            console.error('Error adding favorite:', err);
             dbBooks.run('ROLLBACK');
+            if (err.message.includes('UNIQUE constraint failed')) {
+              return res.status(400).json({ error: 'Book already in favorites' });
+            }
             return res.status(500).json({ error: err.message });
           }
-
-          // Update book status to sold
-          dbBooks.run('UPDATE books SET status = ? WHERE id = ?', ['sold', bookId], function(err) {
-            if (err) {
-              dbBooks.run('ROLLBACK');
-              return res.status(500).json({ error: err.message });
-            }
-            
-            dbBooks.run('COMMIT');
-            res.json({ success: true, transactionId: this.lastID });
-          });
+          dbBooks.run('COMMIT');
+          res.json({ success: true, id: this.lastID });
         }
       );
     });
   });
+});
+
+// Remove from favorites
+app.delete('/api/favorites/:userId/:bookId', (req, res) => {
+  const { userId, bookId } = req.params;
+  
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    'DELETE FROM favorites WHERE user_id = ? AND book_id = ?',
+    [userId, bookId],
+    function(err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Favorite not found' });
+      }
+      dbBooks.run('COMMIT');
+      res.json({ success: true });
+    }
+  );
 });
 
 // Add a new book
@@ -180,70 +206,6 @@ app.get('/api/books', (req, res) => {
     }
     res.json(books || []);
   });
-});
-
-// Get user's favorites
-app.get('/api/favorites/:userId', (req, res) => {
-  const userId = req.params.userId;
-  dbBooks.all(`
-    SELECT b.*, f.id as favorite_id 
-    FROM favorites f
-    JOIN books b ON f.book_id = b.id
-    WHERE f.user_id = ? AND b.status = ?
-    ORDER BY f.created_at DESC
-  `, [userId, 'available'], (err, favorites) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(favorites);
-  });
-});
-
-// Add to favorites
-app.post('/api/favorites', (req, res) => {
-  const { userId, bookId } = req.body;
-  
-  if (!userId || !bookId) {
-    return res.status(400).json({ error: 'User ID and Book ID are required' });
-  }
-
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
-    'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
-    [userId, bookId],
-    function(err) {
-      if (err) {
-        dbBooks.run('ROLLBACK');
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ error: 'Book already in favorites' });
-        }
-        return res.status(500).json({ error: err.message });
-      }
-      dbBooks.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
-    }
-  );
-});
-
-// Remove from favorites
-app.delete('/api/favorites/:userId/:bookId', (req, res) => {
-  const { userId, bookId } = req.params;
-  
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
-    'DELETE FROM favorites WHERE user_id = ? AND book_id = ?',
-    [userId, bookId],
-    function(err) {
-      if (err) {
-        dbBooks.run('ROLLBACK');
-        return res.status(500).json({ error: err.message });
-      }
-      if (this.changes === 0) {
-        dbBooks.run('ROLLBACK');
-        return res.status(404).json({ error: 'Favorite not found' });
-      }
-      dbBooks.run('COMMIT');
-      res.json({ success: true });
-    }
-  );
 });
 
 const port = 3001;
