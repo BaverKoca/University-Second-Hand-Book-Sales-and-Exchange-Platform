@@ -91,7 +91,7 @@ app.put('/api/users/update', (req, res) => {
 
   db.run('BEGIN TRANSACTION');
   db.run(
-    'UPDATE users SET name = ?, faculty = ?, phone = ? WHERE email = ?',
+    'UPDATE users SET name = ?, faculty = ?, phone = ? WHERE email = ? COLLATE NOCASE',
     [name, faculty, phone, email],
     function(err) {
       if (err) {
