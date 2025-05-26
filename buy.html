@@ -119,71 +119,133 @@
         </form>
       </div>
     </div>
-    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-      <!-- 50 Book Cards with Favorite Star -->
-      <script>
-        const books = [
-          {title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', price: 45, img: 'https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg'},
-          {title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 10, img: 'https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg'},
-          {title: 'Linear Algebra and its Applications', author: 'David C. Lay', price: 35, img: 'https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg'},
-          {title: 'Database Management Systems', author: 'Raghu Ramakrishnan', price: 40, img: 'https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg'},
-          {title: 'Clean Code', author: 'Robert C. Martin', price: 30, img: 'https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg'},
-          {title: 'The Pragmatic Programmer', author: 'Andrew Hunt', price: 32, img: 'https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg'},
-          {title: 'Design Patterns', author: 'Erich Gamma', price: 38, img: 'https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg'},
-          {title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', price: 50, img: 'https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg'},
-          {title: 'Introduction to the Theory of Computation', author: 'Michael Sipser', price: 42, img: 'https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg'},
-          {title: 'Operating System Concepts', author: 'Abraham Silberschatz', price: 44, img: 'https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg'},
-        ];
-        // Add 40 more books (dummy data)
-        for(let i=0;i<40;i++){
-          books.push({title: `Sample Book ${i+1}`, author: `Author ${i+1}`, price: 10+i, img: 'https://img.icons8.com/ios-filled/100/000000/book.png'});
-        }
-        document.write(books.map((b,idx)=>`
-          <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
-            <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Add to favorites">
-              <svg class="w-6 h-6 text-gray-300 favorite-star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/></svg>
-            </button>
-            <img src='${b.img}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
-            <div class='p-5 flex-1 flex flex-col'>
-              <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
-              <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
-              <p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
-              <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Add to Cart</button>
-            </div>
-          </div>
-        `).join(''));
-      </script>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8" id="booksContainer">
+      <!-- Books will be loaded dynamically -->
     </div>
     <div id="noResultsMsg" class="col-span-full text-center text-lg text-red-500 font-semibold mt-8 hidden">
       There's nothing match with your search
     </div>
   </section>
   <script>
-    // Favorite star logic
-    document.addEventListener('DOMContentLoaded', function() {
-      const favBtns = document.querySelectorAll('.favorite-btn');
-      favBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          const star = btn.querySelector('.favorite-star');
-          if (star.classList.contains('text-gray-300')) {
-            star.classList.remove('text-gray-300');
-            star.classList.add('text-orange-400');
-          } else {
-            star.classList.remove('text-orange-400');
-            star.classList.add('text-gray-300');
-          }
-          // Save to localStorage for favorites page
-          let favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
-          const idx = parseInt(btn.getAttribute('data-idx'));
-          if (star.classList.contains('text-orange-400')) {
-            if (!favs.includes(idx)) favs.push(idx);
-          } else {
-            favs = favs.filter(i => i !== idx);
-          }
-          localStorage.setItem('favoriteBooks', JSON.stringify(favs));
+    // Load and display books from the database
+    async function loadBooks() {
+      try {
+        const response = await fetch('http://localhost:3001/api/books');
+        const books = await response.json();
+        
+        const booksContainer = document.getElementById('booksContainer');
+        
+        if (books.length === 0) {
+          booksContainer.innerHTML = '<p class="col-span-full text-center text-gray-500">No books available at the moment.</p>';
+          return;
+        }
+
+        booksContainer.innerHTML = books.map((b, idx) => `
+          <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
+            <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Add to favorites">
+              <svg class="w-6 h-6 text-gray-300 favorite-star" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+              </svg>
+            </button>
+            <img src='${b.picture_url}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
+            <div class='p-5 flex-1 flex flex-col'>
+              <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
+              <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
+              <p class='text-sm text-gray-500 mb-1'>Genre: ${b.genre}</p>
+              ${b.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${b.course_code}</p>` : ''}
+              ${b.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${b.edition}</p>` : ''}
+              <p class='text-sm text-gray-500 mb-1'>Year: ${b.year}</p>
+              <p class='text-sm text-gray-500 mb-2'>Condition: ${b.book_condition}</p>
+              ${b.for_what === 'Sell' 
+                ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
+                   <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
+                : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
+                   <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
+              }
+            </div>
+          </div>
+        `).join('');
+
+        // Initialize favorite buttons
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const star = btn.querySelector('.favorite-star');
+            if (star.classList.contains('text-gray-300')) {
+              star.classList.remove('text-gray-300');
+              star.classList.add('text-orange-400');
+            } else {
+              star.classList.remove('text-orange-400');
+              star.classList.add('text-gray-300');
+            }
+            // Save to localStorage for favorites page
+            let favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
+            const idx = parseInt(btn.getAttribute('data-idx'));
+            if (star.classList.contains('text-orange-400')) {
+              if (!favs.includes(idx)) favs.push(idx);
+            } else {
+              favs = favs.filter(i => i !== idx);
+            }
+            localStorage.setItem('favoriteBooks', JSON.stringify(favs));
+          });
         });
+
+      } catch (error) {
+        console.error('Error loading books:', error);
+        document.getElementById('booksContainer').innerHTML = 
+          '<p class="col-span-full text-center text-red-500">Error loading books. Please try again later.</p>';
+      }
+    }
+
+    // Load books when page loads
+    document.addEventListener('DOMContentLoaded', loadBooks);
+
+    // Book search logic for buy page
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      const searchBtn = document.getElementById('searchBtn');
+      const noResultsMsg = document.getElementById('noResultsMsg');
+
+      function filterBooks(query) {
+        const q = query.trim().toLowerCase();
+        const bookCards = Array.from(document.querySelectorAll('#booksContainer > div'));
+        let matchCount = 0;
+
+        bookCards.forEach(card => {
+          const title = card.querySelector('h3').textContent.toLowerCase();
+          const author = card.querySelector('p.text-sm').textContent.toLowerCase();
+          const genre = card.querySelector('p.text-gray-500').textContent.toLowerCase();
+          const isMatch = title.includes(q) || author.includes(q) || genre.includes(q);
+          card.style.display = isMatch ? '' : 'none';
+          if (isMatch) matchCount++;
+        });
+
+        if (matchCount === 0) {
+          noResultsMsg.classList.remove('hidden');
+        } else {
+          noResultsMsg.classList.add('hidden');
+        }
+      }
+
+      searchBtn.addEventListener('click', e => {
+        e.preventDefault();
+        filterBooks(searchInput.value);
       });
+
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          filterBooks(searchInput.value);
+        }
+      });
+
+      // Check for ?search= in URL and trigger search
+      const params = new URLSearchParams(window.location.search);
+      const search = params.get('search');
+      if (search) {
+        searchInput.value = decodeURIComponent(search);
+        filterBooks(searchInput.value);
+      }
     });
   </script>
 
@@ -285,53 +347,6 @@
         sortDropdown.classList.add('hidden');
         // Here you would apply the sorting logic
       });
-    });
-  </script>
-  <script>
-    // Book search logic for buy page
-    document.addEventListener('DOMContentLoaded', function() {
-      const bookCards = Array.from(document.querySelectorAll('.max-w-7xl .bg-white.rounded-2xl'));
-      const searchInput = document.getElementById('searchInput');
-      const searchBtn = document.getElementById('searchBtn');
-      const noResultsMsg = document.getElementById('noResultsMsg');
-      function filterBooksBuy(query) {
-        const q = query.trim().toLowerCase();
-        let matchCount = 0;
-        bookCards.forEach(card => {
-          const title = card.querySelector('h3').textContent.toLowerCase();
-          const author = card.querySelector('p.text-sm').textContent.toLowerCase();
-          const isMatch = title.includes(q) || author.includes(q);
-          card.style.display = isMatch ? '' : 'none';
-          if (isMatch) matchCount++;
-        });
-        const noResultsMsg = document.getElementById('noResultsMsg');
-        if (noResultsMsg) {
-          if (matchCount === 0) {
-            noResultsMsg.classList.remove('hidden');
-          } else {
-            noResultsMsg.classList.add('hidden');
-          }
-        }
-      }
-      // Remove input event listener, only trigger on button click or Enter key
-      searchBtn.addEventListener('click', e => {
-        e.preventDefault();
-        filterBooksBuy(searchInput.value);
-      });
-      searchInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          filterBooksBuy(searchInput.value);
-        }
-      });
-      // --- NEW: Check for ?search= in URL and trigger search ---
-      const params = new URLSearchParams(window.location.search);
-      const search = params.get('search');
-      if (search) {
-        searchInput.value = decodeURIComponent(search);
-        filterBooksBuy(searchInput.value);
-      }
-      // --- END NEW ---
     });
   </script>
 </body>

@@ -249,6 +249,118 @@
         div.querySelector('input').removeAttribute('required');
       }
     });
+
+    // Form submission handling
+    const userEmail = JSON.parse(localStorage.getItem('currentUser'))?.email;
+
+    async function handleImageUpload(file) {
+      // In a real application, you would upload to a server/cloud storage
+      // For now, we'll use a data URL
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    sellForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!userEmail) {
+        alert('Please log in again');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+        const imageFile = this.querySelector('input[type="file"]').files[0];
+        if (!imageFile) {
+          alert('Please select an image');
+          return;
+        }
+
+        const picture_url = await handleImageUpload(imageFile);
+        
+        const bookData = {
+          title: this.querySelector('input[placeholder="Enter your book title"]').value,
+          author: this.querySelector('input[placeholder="Enter author name"]').value,
+          genre: document.getElementById('sellGenre').value,
+          course_code: this.querySelector('#sellCourseCodeDiv input')?.value || null,
+          edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
+          year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
+          book_condition: this.querySelector('select[required]').value,
+          price: parseFloat(this.querySelector('input[placeholder="Enter price"]').value),
+          picture_url,
+          for_what: 'Sell',
+          owner_email: userEmail
+        };
+
+        const response = await fetch('http://localhost:3001/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookData)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert('Book listed successfully!');
+          window.location.href = 'buy.html';
+        } else {
+          throw new Error(result.error || 'Failed to list book');
+        }
+      } catch (error) {
+        alert(error.message || 'Error listing book');
+      }
+    });
+
+    exchangeForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!userEmail) {
+        alert('Please log in again');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+        const imageFile = this.querySelector('input[type="file"]').files[0];
+        if (!imageFile) {
+          alert('Please select an image');
+          return;
+        }
+
+        const picture_url = await handleImageUpload(imageFile);
+        
+        const bookData = {
+          title: this.querySelector('input[placeholder="Enter your book title"]').value,
+          author: this.querySelector('input[placeholder="Enter author name"]').value,
+          genre: document.getElementById('exchangeGenre').value,
+          course_code: this.querySelector('#exchangeCourseCodeDiv input')?.value || null,
+          edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
+          year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
+          book_condition: this.querySelector('select[required]').value,
+          price: null,
+          picture_url,
+          for_what: 'Exchange',
+          owner_email: userEmail
+        };
+
+        const response = await fetch('http://localhost:3001/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookData)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert('Book listed successfully!');
+          window.location.href = 'buy.html';
+        } else {
+          throw new Error(result.error || 'Failed to list book');
+        }
+      } catch (error) {
+        alert(error.message || 'Error listing book');
+      }
+    });
   </script>
 </body>
 </html>

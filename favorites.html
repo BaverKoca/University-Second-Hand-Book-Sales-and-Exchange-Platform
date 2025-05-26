@@ -62,50 +62,64 @@
     <div class="mt-4 text-xs text-gray-400">&copy; 2025 TheBookMark. All rights reserved.</div>
   </footer>
   <script>
-    // Load favorites from localStorage (by book index)
-    const allBooks = [
-      {title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', price: 45, img: 'https://m.media-amazon.com/images/I/41as+WafrFL.SX218_BO1,204,203,200_QL40_FMwebp.jpg'},
-      {title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 10, img: 'https://www.littlebrown.co.uk/wp-content/uploads/2020/07/hbg-title-the-great-gatsby-a-novel-10.jpg'},
-      {title: 'Linear Algebra and its Applications', author: 'David C. Lay', price: 35, img: 'https://m.media-amazon.com/images/I/81vpsIs58WL.AC_UF1000,1000_QL80.jpg'},
-      {title: 'Database Management Systems', author: 'Raghu Ramakrishnan', price: 40, img: 'https://m.media-amazon.com/images/I/61bsiIJvGAL._AC_UF1000,1000_QL80_.jpg'},
-      {title: 'Clean Code', author: 'Robert C. Martin', price: 30, img: 'https://images-na.ssl-images-amazon.com/images/I/51Zymoq7UnL._SX379_BO1,204,203,200_.jpg'},
-      {title: 'The Pragmatic Programmer', author: 'Andrew Hunt', price: 32, img: 'https://images-na.ssl-images-amazon.com/images/I/41+e3refnZL._SX376_BO1,204,203,200_.jpg'},
-      {title: 'Design Patterns', author: 'Erich Gamma', price: 38, img: 'https://images-na.ssl-images-amazon.com/images/I/51oHUvYzbsL._SX379_BO1,204,203,200_.jpg'},
-      {title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell', price: 50, img: 'https://images-na.ssl-images-amazon.com/images/I/41as+WafrFL._SX218_BO1,204,203,200_.jpg'},
-      {title: 'Introduction to the Theory of Computation', author: 'Michael Sipser', price: 42, img: 'https://images-na.ssl-images-amazon.com/images/I/51T-sMqSMiL._SX376_BO1,204,203,200_.jpg'},
-      {title: 'Operating System Concepts', author: 'Abraham Silberschatz', price: 44, img: 'https://images-na.ssl-images-amazon.com/images/I/51EXc6u0HQL._SX379_BO1,204,203,200_.jpg'},
-    ];
-    for(let i=0;i<40;i++){
-      allBooks.push({title: `Sample Book ${i+1}`, author: `Author ${i+1}`, price: 10+i, img: 'https://img.icons8.com/ios-filled/100/000000/book.png'});
+    // Load favorites from database
+    let allBooks = [];
+    
+    async function loadBooks() {
+      try {
+        const response = await fetch('http://localhost:3001/api/books');
+        allBooks = await response.json();
+        renderFavorites();
+      } catch (error) {
+        console.error('Error loading books:', error);
+        document.getElementById('favorites-list').innerHTML = 
+          '<p class="text-center text-red-500">Error loading books. Please try again later.</p>';
+      }
     }
+
     function renderFavorites() {
       const favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
       const list = document.getElementById('favorites-list');
       list.innerHTML = '';
+      
       if (!favs.length) {
         document.getElementById('no-favorites').classList.remove('hidden');
         return;
       } else {
         document.getElementById('no-favorites').classList.add('hidden');
       }
+
       favs.forEach(idx => {
         const b = allBooks[idx];
         if (!b) return;
+        
         list.innerHTML += `
         <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
           <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Remove from favorites">
-            <svg class="w-6 h-6 text-orange-400 favorite-star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/></svg>
+            <svg class="w-6 h-6 text-orange-400 favorite-star" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+            </svg>
           </button>
-          <img src='${b.img}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
+          <img src='${b.picture_url}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
           <div class='p-5 flex-1 flex flex-col'>
             <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
             <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
-            <p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
-            <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Add to Cart</button>
+            <p class='text-sm text-gray-500 mb-1'>Genre: ${b.genre}</p>
+            ${b.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${b.course_code}</p>` : ''}
+            ${b.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${b.edition}</p>` : ''}
+            <p class='text-sm text-gray-500 mb-1'>Year: ${b.year}</p>
+            <p class='text-sm text-gray-500 mb-2'>Condition: ${b.book_condition}</p>
+            ${b.for_what === 'Sell' 
+              ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
+                 <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
+              : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
+                 <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
+            }
           </div>
         </div>
         `;
       });
+
       // Remove from favorites
       document.querySelectorAll('.favorite-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
@@ -118,7 +132,9 @@
         });
       });
     }
-    renderFavorites();
+
+    // Load books when page loads
+    document.addEventListener('DOMContentLoaded', loadBooks);
   </script>
   <script>
     // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
