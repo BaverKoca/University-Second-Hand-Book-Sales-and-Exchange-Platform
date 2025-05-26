@@ -163,6 +163,37 @@ app.delete('/api/favorites/:userId/:bookId', (req, res) => {
   );
 });
 
+// Mark book as sold
+app.put('/api/books/:bookId/sold', (req, res) => {
+  const { bookId } = req.params;
+  
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    'UPDATE books SET status = ? WHERE id = ?',
+    ['sold', bookId],
+    function(err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Book not found' });
+      }
+      
+      // Also remove from all users' favorites
+      dbBooks.run('DELETE FROM favorites WHERE book_id = ?', [bookId], function(err) {
+        if (err) {
+          dbBooks.run('ROLLBACK');
+          return res.status(500).json({ error: err.message });
+        }
+        dbBooks.run('COMMIT');
+        res.json({ success: true });
+      });
+    }
+  );
+});
+
 // Add a new book
 app.post('/api/books', (req, res) => {
   const {

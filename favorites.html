@@ -164,12 +164,26 @@
           return;
         }
 
-        // Remove from favorites
-        await removeFavorite(bookId);
-        alert('Book removed from favorites.');
+        // First mark the book as sold
+        const soldResponse = await fetch(`http://localhost:3001/api/books/${bookId}/sold`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const soldResult = await soldResponse.json();
+        if (soldResult.success) {
+          // Book was marked as sold and removed from all favorites
+          // Reload the favorites list
+          loadFavorites();
+          alert('Purchase successful! The book has been removed from available listings.');
+        } else {
+          alert(soldResult.error || 'Failed to complete purchase. Please try again.');
+        }
       } catch (error) {
-        console.error('Error processing action:', error);
-        alert('Error processing action. Please try again.');
+        console.error('Error processing purchase:', error);
+        alert('Error processing purchase. Please try again.');
       }
     }
 
