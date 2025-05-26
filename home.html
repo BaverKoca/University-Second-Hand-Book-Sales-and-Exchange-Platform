@@ -38,7 +38,6 @@
           <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
             <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
             <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
-            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
             <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
           </div>
         </div>
@@ -84,15 +83,15 @@
 
   <!--Call to Action-->
   <section class="mt-16 text-center">
-    <div class="bg-white mx-auto max-w-2xl py-6 px-4 rounded-xl shadow-sm">
-      <p class="font-semibold">Want to swap books? Find your perfect match!</p>
+    <div onclick="window.location.href='buy.html?for_what=Exchange'" class="bg-white mx-auto max-w-2xl py-6 px-4 rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:bg-blue-50">
+      <p class="font-semibold text-lg">Want to swap books? Find your perfect match!</p>
     </div>
   </section>
 
   <!--Footer-->
   <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
     <div class="flex flex-col md:flex-row justify-center items-center gap-4">
-      <a href="#about" class="hover:text-blue-600">About Us</a>
+      <a href="#" onclick="showAboutModal(event)" class="hover:text-blue-600">About Us</a>
       <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
     </div>
     <div class="flex justify-center gap-6 mt-4">
@@ -149,8 +148,25 @@
     // Load featured books from database
     async function loadFeaturedBooks() {
       try {
-        const response = await fetch('http://localhost:3001/api/books');
-        const books = await response.json();
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        // Check if recommendations are already cached for this session
+        const cachedRecommendations = sessionStorage.getItem('recommendedBooks');
+        let books;
+
+        if (!cachedRecommendations) {
+          // Get fresh recommendations from server
+          const response = await fetch(`http://localhost:3001/api/recommendations/${currentUser.id}`);
+          books = await response.json();
+          // Cache the recommendations for this session
+          sessionStorage.setItem('recommendedBooks', JSON.stringify(books));
+        } else {
+          books = JSON.parse(cachedRecommendations);
+        }
         
         const carouselContainer = document.getElementById('carousel-container');
         
@@ -159,8 +175,8 @@
           return;
         }
 
-        // Get random featured books
-        const featuredBooks = books.sort(() => 0.5 - Math.random()).slice(0, 10);
+        // Get top 10 recommended books
+        const featuredBooks = books.slice(0, 10);
 
         carouselContainer.innerHTML = featuredBooks.map((b, idx) => `
           <div class='text-center min-w-[250px] max-w-xs mx-2'>
@@ -238,6 +254,37 @@
     document.addEventListener('click', function(e) {
       if (!profileMenuContainer.contains(e.target)) {
         profileDropdown.classList.add('hidden');
+      }
+    });
+
+    // About Us Modal functionality
+    const aboutModal = document.getElementById('about-modal');
+    const closeAboutModal = document.getElementById('close-about-modal');
+
+    function showAboutModal(event) {
+      event.preventDefault();
+      aboutModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+    }
+
+    function hideAboutModal() {
+      aboutModal.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    closeAboutModal.addEventListener('click', hideAboutModal);
+
+    // Close modal when clicking outside
+    aboutModal.addEventListener('click', (e) => {
+      if (e.target === aboutModal) {
+        hideAboutModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !aboutModal.classList.contains('hidden')) {
+        hideAboutModal();
       }
     });
   </script>

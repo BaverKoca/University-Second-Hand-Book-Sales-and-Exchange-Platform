@@ -33,7 +33,6 @@
           <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
             <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
             <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
-            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
             <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
           </div>
         </div>
@@ -68,6 +67,9 @@
         }
 
         const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch favorites');
+        }
         const favorites = await response.json();
         
         const list = document.getElementById('favorites-list');
@@ -108,7 +110,8 @@
 
         // Add event listeners for remove buttons
         document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
-          btn.addEventListener('click', async function() {
+          btn.addEventListener('click', async function(e) {
+            e.preventDefault();
             const bookId = this.getAttribute('data-book-id');
             await removeFavorite(bookId);
           });
@@ -134,6 +137,10 @@
           method: 'DELETE'
         });
 
+        if (!response.ok) {
+          throw new Error('Failed to remove from favorites');
+        }
+
         const result = await response.json();
         if (result.success) {
           // Reload favorites
@@ -157,26 +164,22 @@
           return;
         }
 
-        const response = await fetch('http://localhost:3001/api/transactions', {
-          method: 'POST',
+        // First mark the book as sold
+        const soldResponse = await fetch(`http://localhost:3001/api/books/${bookId}/sold`, {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userId: currentUser.id,
-            bookId: bookId,
-            type: 'Purchase'
-          })
+          }
         });
 
-        const result = await response.json();
-        
-        if (result.success) {
-          // Remove from favorites and reload
-          await removeFavorite(bookId);
-          alert('Purchase successful! Check your transaction history for details.');
+        const soldResult = await soldResponse.json();
+        if (soldResult.success) {
+          // Book was marked as sold and removed from all favorites
+          // Reload the favorites list
+          loadFavorites();
+          alert('Purchase successful! The book has been removed from available listings.');
         } else {
-          alert(result.error || 'Failed to complete purchase. Please try again.');
+          alert(soldResult.error || 'Failed to complete purchase. Please try again.');
         }
       } catch (error) {
         console.error('Error processing purchase:', error);

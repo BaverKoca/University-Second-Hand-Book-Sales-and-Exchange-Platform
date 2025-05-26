@@ -23,8 +23,16 @@ app.post('/api/register', (req, res) => {
         }
         return res.status(500).json({ error: err.message });
       }
-      dbUsers.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
+      
+      // Get the newly created user
+      dbUsers.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
+        if (err) {
+          dbUsers.run('ROLLBACK');
+          return res.status(500).json({ error: err.message });
+        }
+        dbUsers.run('COMMIT');
+        res.json({ success: true, user });
+      });
     }
   );
 });
@@ -70,118 +78,6 @@ app.put('/api/users/update', (req, res) => {
   );
 });
 
-// Get user's transactions
-app.get('/api/transactions/:userId', (req, res) => {
-  const userId = req.params.userId;
-  dbBooks.all(`
-    SELECT t.*, b.*, u.name as seller_name
-    FROM transactions t
-    JOIN books b ON t.book_id = b.id
-    JOIN users u ON t.seller_id = u.id
-    WHERE t.buyer_id = ?
-    ORDER BY t.transaction_date DESC
-  `, [userId], (err, transactions) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(transactions);
-  });
-});
-
-// Create new transaction
-app.post('/api/transactions', (req, res) => {
-  const { userId, bookId, type } = req.body;
-  
-  dbBooks.run('BEGIN TRANSACTION');
-  
-  // First get the book details to get the seller and price
-  dbBooks.get('SELECT * FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
-    if (err) {
-      dbBooks.run('ROLLBACK');
-      return res.status(500).json({ error: err.message });
-    }
-    if (!book) {
-      dbBooks.run('ROLLBACK');
-      return res.status(404).json({ error: 'Book not found or already sold' });
-    }
-
-    // Get seller's user ID
-    dbUsers.get('SELECT id FROM users WHERE email = ?', [book.owner_email], (err, seller) => {
-      if (err || !seller) {
-        dbBooks.run('ROLLBACK');
-        return res.status(500).json({ error: 'Seller not found' });
-      }
-
-      // Create the transaction
-      dbBooks.run(
-        `INSERT INTO transactions (book_id, buyer_id, seller_id, type, price)
-         VALUES (?, ?, ?, ?, ?)`,
-        [bookId, userId, seller.id, type, book.price],
-        function(err) {
-          if (err) {
-            dbBooks.run('ROLLBACK');
-            return res.status(500).json({ error: err.message });
-          }
-
-          // Update book status to sold
-          dbBooks.run('UPDATE books SET status = ? WHERE id = ?', ['sold', bookId], function(err) {
-            if (err) {
-              dbBooks.run('ROLLBACK');
-              return res.status(500).json({ error: err.message });
-            }
-            
-            dbBooks.run('COMMIT');
-            res.json({ success: true, transactionId: this.lastID });
-          });
-        }
-      );
-    });
-  });
-});
-
-// Add a new book
-app.post('/api/books', (req, res) => {
-  const {
-    title, author, genre, course_code, edition, year,
-    book_condition, price, picture_url, for_what, owner_email
-  } = req.body;
-
-  if (!title || !author || !genre || !year || !book_condition || !picture_url || !for_what || !owner_email) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  if (genre === 'Education' && !course_code) {
-    return res.status(400).json({ error: 'Course code required for Education genre' });
-  }
-  if (for_what === 'Sell' && (price === undefined || price === null || price === '')) {
-    return res.status(400).json({ error: 'Price required for selling' });
-  }
-
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
-    `INSERT INTO books (title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
-    function (err) {
-      if (err) {
-        dbBooks.run('ROLLBACK');
-        return res.status(500).json({ error: err.message });
-      }
-      dbBooks.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
-    }
-  );
-});
-
-// Get all available books
-app.get('/api/books', (req, res) => {
-  const query = 'SELECT * FROM books WHERE status = ? ORDER BY id DESC';
-  dbBooks.all(query, ['available'], (err, books) => {
-    if (err) {
-      console.error('Error fetching books:', err.message);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(books || []);
-  });
-});
-
 // Get user's favorites
 app.get('/api/favorites/:userId', (req, res) => {
   const userId = req.params.userId;
@@ -192,8 +88,11 @@ app.get('/api/favorites/:userId', (req, res) => {
     WHERE f.user_id = ? AND b.status = ?
     ORDER BY f.created_at DESC
   `, [userId, 'available'], (err, favorites) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(favorites);
+    if (err) {
+      console.error('Error fetching favorites:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(favorites || []);
   });
 });
 
@@ -205,22 +104,40 @@ app.post('/api/favorites', (req, res) => {
     return res.status(400).json({ error: 'User ID and Book ID are required' });
   }
 
-  dbBooks.run('BEGIN TRANSACTION');
-  dbBooks.run(
-    'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
-    [userId, bookId],
-    function(err) {
+  dbBooks.serialize(() => {
+    dbBooks.run('BEGIN TRANSACTION');
+    
+    // Check if book exists and is available
+    dbBooks.get('SELECT id FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
       if (err) {
+        console.error('Error checking book:', err);
         dbBooks.run('ROLLBACK');
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ error: 'Book already in favorites' });
-        }
         return res.status(500).json({ error: err.message });
       }
-      dbBooks.run('COMMIT');
-      res.json({ success: true, id: this.lastID });
-    }
-  );
+      if (!book) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Book not found or not available' });
+      }
+
+      // Add to favorites
+      dbBooks.run(
+        'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
+        [userId, bookId],
+        function(err) {
+          if (err) {
+            console.error('Error adding favorite:', err);
+            dbBooks.run('ROLLBACK');
+            if (err.message.includes('UNIQUE constraint failed')) {
+              return res.status(400).json({ error: 'Book already in favorites' });
+            }
+            return res.status(500).json({ error: err.message });
+          }
+          dbBooks.run('COMMIT');
+          res.json({ success: true, id: this.lastID });
+        }
+      );
+    });
+  });
 });
 
 // Remove from favorites
@@ -244,6 +161,118 @@ app.delete('/api/favorites/:userId/:bookId', (req, res) => {
       res.json({ success: true });
     }
   );
+});
+
+// Mark book as sold
+app.put('/api/books/:bookId/sold', (req, res) => {
+  const { bookId } = req.params;
+  
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    'UPDATE books SET status = ? WHERE id = ?',
+    ['sold', bookId],
+    function(err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Book not found' });
+      }
+      
+      // Also remove from all users' favorites
+      dbBooks.run('DELETE FROM favorites WHERE book_id = ?', [bookId], function(err) {
+        if (err) {
+          dbBooks.run('ROLLBACK');
+          return res.status(500).json({ error: err.message });
+        }
+        dbBooks.run('COMMIT');
+        res.json({ success: true });
+      });
+    }
+  );
+});
+
+// Add a new book
+app.post('/api/books', (req, res) => {
+  const {
+    title, author, genre, faculty, edition, year,
+    book_condition, price, picture_url, for_what, owner_email
+  } = req.body;
+
+  if (!title || !author || !genre || !year || !book_condition || !picture_url || !for_what || !owner_email) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  if (genre === 'education' && !faculty) {
+    return res.status(400).json({ error: 'Faculty required for Education genre' });
+  }
+  if (for_what === 'Sell' && (price === undefined || price === null || price === '')) {
+    return res.status(400).json({ error: 'Price required for selling' });
+  }
+
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    `INSERT INTO books (title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
+    function (err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      dbBooks.run('COMMIT');
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+// Get all available books
+app.get('/api/books', (req, res) => {
+  const query = 'SELECT * FROM books WHERE status = ? ORDER BY id DESC';
+  dbBooks.all(query, ['available'], (err, books) => {
+    if (err) {
+      console.error('Error fetching books:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(books || []);
+  });
+});
+
+// Get personalized book recommendations
+app.get('/api/recommendations/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  // Get user's faculty
+  dbUsers.get('SELECT faculty FROM users WHERE id = ?', [userId], (err, user) => {
+    if (err) {
+      console.error('Error getting user faculty:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get user's favorites and faculty books
+    dbBooks.all(`
+      SELECT DISTINCT b.*, 
+             CASE 
+               WHEN f.user_id IS NOT NULL THEN 2  -- Favorite books get higher priority
+               WHEN b.faculty = ? THEN 1  -- Faculty books get medium priority
+               ELSE 0  -- Other books get lowest priority
+             END as relevance_score
+      FROM books b
+      LEFT JOIN favorites f ON b.id = f.book_id AND f.user_id = ?
+      WHERE b.status = 'available'
+      ORDER BY relevance_score DESC, b.id DESC
+    `, [user.faculty, userId], (err, books) => {
+      if (err) {
+        console.error('Error getting recommended books:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(books || []);
+    });
+  });
 });
 
 const port = 3001;

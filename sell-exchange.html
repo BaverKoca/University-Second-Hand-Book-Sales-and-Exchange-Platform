@@ -41,7 +41,6 @@
           <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-left">
             <a href="profile.html" class="block px-4 py-2 hover:bg-blue-50">Your Profile</a>
             <a href="favorites.html" class="block px-4 py-2 hover:bg-blue-50">Favorite Books</a>
-            <a href="transaction-history.html" class="block px-4 py-2 hover:bg-blue-50">Transaction History</a>
             <a href="index.html" class="block px-4 py-2 text-red-600 hover:bg-red-50">Sign Out</a>
           </div>
         </div>
@@ -78,8 +77,22 @@
         </select>
       </div>
       <div id="sellCourseCodeDiv" class="hidden">
-        <label class="block mb-2 font-semibold">Course Code <span class="text-red-500">*</span></label>
-        <input type="text" class="w-full border rounded px-3 py-2 outline-none" placeholder="Enter course code">
+        <label class="block mb-2 font-semibold">Faculty <span class="text-red-500">*</span></label>
+        <select class="w-full border rounded px-3 py-2 outline-none" required>
+          <option value="">Select faculty</option>
+          <option>Faculty of Business and Economics</option>
+          <option>Faculty of Engineering</option>
+          <option>Faculty of Arts and Sciences</option>
+          <option>Faculty of Law</option>
+          <option>Faculty of Architecture</option>
+          <option>Faculty of Communication and Media Studies</option>
+          <option>Faculty of Education</option>
+          <option>Faculty of Health Sciences</option>
+          <option>Faculty of Pharmacy</option>
+          <option>Faculty of Medicine</option>
+          <option>Faculty of Dentistry</option>
+          <option>Faculty of Tourism</option>
+        </select>
       </div>
       <div>
         <label class="block mb-2 font-semibold">Edition</label>
@@ -132,8 +145,22 @@
         </select>
       </div>
       <div id="exchangeCourseCodeDiv" class="hidden">
-        <label class="block mb-2 font-semibold">Course Code <span class="text-red-500">*</span></label>
-        <input type="text" class="w-full border rounded px-3 py-2 outline-none" placeholder="Enter course code">
+        <label class="block mb-2 font-semibold">Faculty <span class="text-red-500">*</span></label>
+        <select class="w-full border rounded px-3 py-2 outline-none" required>
+          <option value="">Select faculty</option>
+          <option>Faculty of Business and Economics</option>
+          <option>Faculty of Engineering</option>
+          <option>Faculty of Arts and Sciences</option>
+          <option>Faculty of Law</option>
+          <option>Faculty of Architecture</option>
+          <option>Faculty of Communication and Media Studies</option>
+          <option>Faculty of Education</option>
+          <option>Faculty of Health Sciences</option>
+          <option>Faculty of Pharmacy</option>
+          <option>Faculty of Medicine</option>
+          <option>Faculty of Dentistry</option>
+          <option>Faculty of Tourism</option>
+        </select>
       </div>
       <div>
         <label class="block mb-2 font-semibold">Edition</label>
@@ -231,23 +258,25 @@
     // Show/hide course code for Sell
     document.getElementById('sellGenre').addEventListener('change', function() {
       const div = document.getElementById('sellCourseCodeDiv');
+      const select = div.querySelector('select');
       if (this.value === 'education') {
         div.classList.remove('hidden');
-        div.querySelector('input').setAttribute('required', 'required');
+        select.setAttribute('required', 'required');
       } else {
         div.classList.add('hidden');
-        div.querySelector('input').removeAttribute('required');
+        select.removeAttribute('required');
       }
     });
     // Show/hide course code for Exchange
     document.getElementById('exchangeGenre').addEventListener('change', function() {
       const div = document.getElementById('exchangeCourseCodeDiv');
+      const select = div.querySelector('select');
       if (this.value === 'education') {
         div.classList.remove('hidden');
-        div.querySelector('input').setAttribute('required', 'required');
+        select.setAttribute('required', 'required');
       } else {
         div.classList.add('hidden');
-        div.querySelector('input').removeAttribute('required');
+        select.removeAttribute('required');
       }
     });
 
@@ -286,7 +315,7 @@
           title: this.querySelector('input[placeholder="Enter your book title"]').value,
           author: this.querySelector('input[placeholder="Enter author name"]').value,
           genre: document.getElementById('sellGenre').value,
-          course_code: this.querySelector('#sellCourseCodeDiv input')?.value || null,
+          faculty: this.querySelector('#sellCourseCodeDiv select')?.value || null,
           edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
           year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
           book_condition: this.querySelector('select[required]').value,
@@ -335,7 +364,7 @@
           title: this.querySelector('input[placeholder="Enter your book title"]').value,
           author: this.querySelector('input[placeholder="Enter author name"]').value,
           genre: document.getElementById('exchangeGenre').value,
-          course_code: this.querySelector('#exchangeCourseCodeDiv input')?.value || null,
+          faculty: this.querySelector('#exchangeCourseCodeDiv select')?.value || null,
           edition: this.querySelector('input[placeholder="Enter edition (optional)"]').value || null,
           year: parseInt(this.querySelector('input[type="number"][placeholder="Enter year"]').value),
           book_condition: this.querySelector('select[required]').value,
