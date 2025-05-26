@@ -10,16 +10,20 @@ app.use(bodyParser.json());
 // Register user
 app.post('/api/register', (req, res) => {
   const { name, faculty, department, phone, email, password } = req.body;
+  
+  dbUsers.run('BEGIN TRANSACTION');
   dbUsers.run(
     'INSERT INTO users (name, faculty, department, phone, email, password) VALUES (?, ?, ?, ?, ?, ?)',
     [name, faculty, department, phone, email, password],
     function (err) {
       if (err) {
+        dbUsers.run('ROLLBACK');
         if (err.message.includes('UNIQUE constraint failed')) {
           return res.status(400).json({ error: 'Email already registered' });
         }
         return res.status(500).json({ error: err.message });
       }
+      dbUsers.run('COMMIT');
       res.json({ success: true, id: this.lastID });
     }
   );
@@ -47,22 +51,89 @@ app.put('/api/users/update', (req, res) => {
     return res.status(400).json({ error: 'Email is required' });
   }
 
+  dbUsers.run('BEGIN TRANSACTION');
   dbUsers.run(
     'UPDATE users SET name = ?, faculty = ?, department = ?, phone = ? WHERE email = ?',
     [name, faculty, department, phone, email],
     function(err) {
-      if (err) return res.status(500).json({ error: err.message });
-      if (this.changes === 0) return res.status(404).json({ error: 'User not found' });
+      if (err) {
+        dbUsers.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        dbUsers.run('ROLLBACK');
+        return res.status(404).json({ error: 'User not found' });
+      }
+      dbUsers.run('COMMIT');
       res.json({ success: true });
     }
   );
 });
 
-// Get all users (for admin/testing)
-app.get('/api/users', (req, res) => {
-  dbUsers.all('SELECT name, faculty, department, phone, email FROM users', [], (err, rows) => {
+// Get user's transactions
+app.get('/api/transactions/:userId', (req, res) => {
+  const userId = req.params.userId;
+  dbBooks.all(`
+    SELECT t.*, b.*, u.name as seller_name
+    FROM transactions t
+    JOIN books b ON t.book_id = b.id
+    JOIN users u ON t.seller_id = u.id
+    WHERE t.buyer_id = ?
+    ORDER BY t.transaction_date DESC
+  `, [userId], (err, transactions) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
+    res.json(transactions);
+  });
+});
+
+// Create new transaction
+app.post('/api/transactions', (req, res) => {
+  const { userId, bookId, type } = req.body;
+  
+  dbBooks.run('BEGIN TRANSACTION');
+  
+  // First get the book details to get the seller and price
+  dbBooks.get('SELECT * FROM books WHERE id = ? AND status = ?', [bookId, 'available'], (err, book) => {
+    if (err) {
+      dbBooks.run('ROLLBACK');
+      return res.status(500).json({ error: err.message });
+    }
+    if (!book) {
+      dbBooks.run('ROLLBACK');
+      return res.status(404).json({ error: 'Book not found or already sold' });
+    }
+
+    // Get seller's user ID
+    dbUsers.get('SELECT id FROM users WHERE email = ?', [book.owner_email], (err, seller) => {
+      if (err || !seller) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: 'Seller not found' });
+      }
+
+      // Create the transaction
+      dbBooks.run(
+        `INSERT INTO transactions (book_id, buyer_id, seller_id, type, price)
+         VALUES (?, ?, ?, ?, ?)`,
+        [bookId, userId, seller.id, type, book.price],
+        function(err) {
+          if (err) {
+            dbBooks.run('ROLLBACK');
+            return res.status(500).json({ error: err.message });
+          }
+
+          // Update book status to sold
+          dbBooks.run('UPDATE books SET status = ? WHERE id = ?', ['sold', bookId], function(err) {
+            if (err) {
+              dbBooks.run('ROLLBACK');
+              return res.status(500).json({ error: err.message });
+            }
+            
+            dbBooks.run('COMMIT');
+            res.json({ success: true, transactionId: this.lastID });
+          });
+        }
+      );
+    });
   });
 });
 
@@ -83,42 +154,99 @@ app.post('/api/books', (req, res) => {
     return res.status(400).json({ error: 'Price required for selling' });
   }
 
+  dbBooks.run('BEGIN TRANSACTION');
   dbBooks.run(
-    `INSERT INTO books (title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email],
+    `INSERT INTO books (title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
     function (err) {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      dbBooks.run('COMMIT');
       res.json({ success: true, id: this.lastID });
     }
   );
 });
 
-// Get all books
+// Get all available books
 app.get('/api/books', (req, res) => {
-  dbBooks.all('SELECT * FROM books', [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
+  const query = 'SELECT * FROM books WHERE status = ? ORDER BY id DESC';
+  dbBooks.all(query, ['available'], (err, books) => {
+    if (err) {
+      console.error('Error fetching books:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(books || []);
   });
 });
 
-// Get books by owner
-app.get('/api/books/user/:email', (req, res) => {
-  const { email } = req.params;
-  dbBooks.all('SELECT * FROM books WHERE owner_email = ?', [email], (err, rows) => {
+// Get user's favorites
+app.get('/api/favorites/:userId', (req, res) => {
+  const userId = req.params.userId;
+  dbBooks.all(`
+    SELECT b.*, f.id as favorite_id 
+    FROM favorites f
+    JOIN books b ON f.book_id = b.id
+    WHERE f.user_id = ? AND b.status = ?
+    ORDER BY f.created_at DESC
+  `, [userId, 'available'], (err, favorites) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
+    res.json(favorites);
   });
 });
 
-// Delete a book (when sold)
-app.delete('/api/books/:id', (req, res) => {
-  const id = req.params.id;
-  dbBooks.run('DELETE FROM books WHERE id = ?', [id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
+// Add to favorites
+app.post('/api/favorites', (req, res) => {
+  const { userId, bookId } = req.body;
+  
+  if (!userId || !bookId) {
+    return res.status(400).json({ error: 'User ID and Book ID are required' });
+  }
+
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    'INSERT INTO favorites (user_id, book_id) VALUES (?, ?)',
+    [userId, bookId],
+    function(err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(400).json({ error: 'Book already in favorites' });
+        }
+        return res.status(500).json({ error: err.message });
+      }
+      dbBooks.run('COMMIT');
+      res.json({ success: true, id: this.lastID });
+    }
+  );
 });
 
-const PORT = 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Remove from favorites
+app.delete('/api/favorites/:userId/:bookId', (req, res) => {
+  const { userId, bookId } = req.params;
+  
+  dbBooks.run('BEGIN TRANSACTION');
+  dbBooks.run(
+    'DELETE FROM favorites WHERE user_id = ? AND book_id = ?',
+    [userId, bookId],
+    function(err) {
+      if (err) {
+        dbBooks.run('ROLLBACK');
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        dbBooks.run('ROLLBACK');
+        return res.status(404).json({ error: 'Favorite not found' });
+      }
+      dbBooks.run('COMMIT');
+      res.json({ success: true });
+    }
+  );
+});
+
+const port = 3001;
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

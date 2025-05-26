@@ -3,17 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Favorite Books - TheBookMark</title>
+  <title>TheBookMark - Your Favorites</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/session.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
-  <script>
-    // Redirect to login if not authenticated (run as early as possible)
-    if (!localStorage.getItem('isLoggedIn')) {
-      window.location.replace('index.html');
-    }
-  </script>
+<body class="bg-gray-50 text-gray-900">
   <script>
     // Extra protection: block rendering until authentication is checked
     (function() {
@@ -23,6 +17,8 @@
       }
     })();
   </script>
+
+  <!--Header-->
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center p-4">
       <a href="home.html" class="text-2xl font-bold text-black-900 flex items-center hover:text-blue-600" style="cursor:pointer;">
@@ -44,6 +40,7 @@
       </nav>
     </div>
   </header>
+
   <main class="max-w-7xl mx-auto mt-16 bg-white p-8 rounded-xl shadow-md min-h-[60vh]">
     <h1 class="text-3xl font-bold mb-8 text-center text-orange-600">Your Favorite Books</h1>
     <div id="favorites-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -51,98 +48,151 @@
     </div>
     <div id="no-favorites" class="text-center text-gray-500 mt-12 text-lg hidden">You have no favorite books yet.</div>
   </main>
+
   <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
     <div class="flex flex-col md:flex-row justify-center items-center gap-4">
       <a href="#about" class="hover:text-blue-600">About Us</a>
       <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
     </div>
-    <div class="flex justify-center gap-6 mt-4">
-      <a href="https://www.linkedin.com/in/baver-koca" target="_blank" rel="noopener"><img src="https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMi0xMC5wbmc.png" alt="LinkedIn" class="h-6"></a>
-      <a href="https://github.com/BaverKoca" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="h-6"></a>
-    </div>
     <div class="mt-4 text-xs text-gray-400">&copy; 2025 TheBookMark. All rights reserved.</div>
   </footer>
+
   <script>
     // Load favorites from database
-    let allBooks = [];
-    
-    async function loadBooks() {
+    async function loadFavorites() {
       try {
-        const response = await fetch('http://localhost:3001/api/books');
-        allBooks = await response.json();
-        renderFavorites();
-      } catch (error) {
-        console.error('Error loading books:', error);
-        document.getElementById('favorites-list').innerHTML = 
-          '<p class="text-center text-red-500">Error loading books. Please try again later.</p>';
-      }
-    }
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          window.location.href = 'index.html';
+          return;
+        }
 
-    function renderFavorites() {
-      const favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
-      const list = document.getElementById('favorites-list');
-      list.innerHTML = '';
-      
-      if (!favs.length) {
-        document.getElementById('no-favorites').classList.remove('hidden');
-        return;
-      } else {
-        document.getElementById('no-favorites').classList.add('hidden');
-      }
-
-      favs.forEach(idx => {
-        const b = allBooks[idx];
-        if (!b) return;
+        const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}`);
+        const favorites = await response.json();
         
-        list.innerHTML += `
-        <div class='bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative'>
-          <button class="absolute top-3 right-3 z-10 favorite-btn" data-idx="${idx}" aria-label="Remove from favorites">
-            <svg class="w-6 h-6 text-orange-400 favorite-star" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
-            </svg>
-          </button>
-          <img src='${b.picture_url}' alt='${b.title}' class='w-full h-56 object-contain bg-blue-50'>
-          <div class='p-5 flex-1 flex flex-col'>
-            <h3 class='font-bold text-lg text-blue-800 mb-1'>${b.title}</h3>
-            <p class='text-sm text-gray-600 mb-2'>${b.author}</p>
-            <p class='text-sm text-gray-500 mb-1'>Genre: ${b.genre}</p>
-            ${b.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${b.course_code}</p>` : ''}
-            ${b.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${b.edition}</p>` : ''}
-            <p class='text-sm text-gray-500 mb-1'>Year: ${b.year}</p>
-            <p class='text-sm text-gray-500 mb-2'>Condition: ${b.book_condition}</p>
-            ${b.for_what === 'Sell' 
-              ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${b.price.toFixed(2)}</p>
-                 <button class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
-              : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
-                 <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
-            }
-          </div>
-        </div>
-        `;
-      });
+        const list = document.getElementById('favorites-list');
+        const noFavorites = document.getElementById('no-favorites');
+        
+        if (!favorites || favorites.length === 0) {
+          list.innerHTML = '';
+          noFavorites.classList.remove('hidden');
+          return;
+        }
 
-      // Remove from favorites
-      document.querySelectorAll('.favorite-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          let favs = JSON.parse(localStorage.getItem('favoriteBooks')||'[]');
-          const idx = parseInt(btn.getAttribute('data-idx'));
-          favs = favs.filter(i => i !== idx);
-          localStorage.setItem('favoriteBooks', JSON.stringify(favs));
-          renderFavorites();
+        noFavorites.classList.add('hidden');
+        list.innerHTML = favorites.map(book => `
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:scale-105 transition-transform relative">
+            <button class="absolute top-3 right-3 z-10 remove-favorite-btn" data-book-id="${book.id}" aria-label="Remove from favorites">
+              <svg class="w-6 h-6 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"/>
+              </svg>
+            </button>
+            <img src='${book.picture_url}' alt='${book.title}' class='w-full h-56 object-contain bg-blue-50'>
+            <div class='p-5 flex-1 flex flex-col'>
+              <h3 class='font-bold text-lg text-blue-800 mb-1'>${book.title}</h3>
+              <p class='text-sm text-gray-600 mb-2'>${book.author}</p>
+              <p class='text-sm text-gray-500 mb-1'>Genre: ${book.genre}</p>
+              ${book.course_code ? `<p class='text-sm text-gray-500 mb-1'>Course: ${book.course_code}</p>` : ''}
+              ${book.edition ? `<p class='text-sm text-gray-500 mb-1'>Edition: ${book.edition}</p>` : ''}
+              <p class='text-sm text-gray-500 mb-1'>Year: ${book.year}</p>
+              <p class='text-sm text-gray-500 mb-2'>Condition: ${book.book_condition}</p>
+              ${book.for_what === 'Sell' 
+                ? `<p class='text-xl font-bold text-orange-600 mb-4'>$${book.price.toFixed(2)}</p>
+                   <button onclick="handlePurchase('${book.id}')" class='mt-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Buy Now</button>`
+                : `<p class='text-xl font-bold text-green-600 mb-4'>Available for Exchange</p>
+                   <button class='mt-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition'>Request Exchange</button>`
+              }
+            </div>
+          </div>
+        `).join('');
+
+        // Add event listeners for remove buttons
+        document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const bookId = this.getAttribute('data-book-id');
+            await removeFavorite(bookId);
+          });
         });
-      });
+
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+        document.getElementById('favorites-list').innerHTML = 
+          '<p class="text-center text-red-500">Error loading favorites. Please try again later.</p>';
+      }
     }
 
-    // Load books when page loads
-    document.addEventListener('DOMContentLoaded', loadBooks);
-  </script>
-  <script>
-    // Profile dropdown: show on hover or click, and keep open when moving mouse to dropdown
+    // Remove from favorites
+    async function removeFavorite(bookId) {
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}/${bookId}`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          // Reload favorites
+          loadFavorites();
+        } else {
+          alert(result.error || 'Failed to remove from favorites');
+        }
+      } catch (error) {
+        console.error('Error removing favorite:', error);
+        alert('Error removing from favorites. Please try again.');
+      }
+    }
+
+    // Handle book purchase
+    async function handlePurchase(bookId) {
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          alert('Please log in again to complete your purchase.');
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const response = await fetch('http://localhost:3001/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: currentUser.id,
+            bookId: bookId,
+            type: 'Purchase'
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          // Remove from favorites and reload
+          await removeFavorite(bookId);
+          alert('Purchase successful! Check your transaction history for details.');
+        } else {
+          alert(result.error || 'Failed to complete purchase. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error processing purchase:', error);
+        alert('Error processing purchase. Please try again.');
+      }
+    }
+
+    // Load favorites when page loads
+    document.addEventListener('DOMContentLoaded', loadFavorites);
+
+    // Profile dropdown functionality
     const profileBtn = document.getElementById('profile-menu-btn');
     const profileDropdown = document.getElementById('profile-dropdown');
     const profileMenuContainer = document.getElementById('profile-menu-container');
     let dropdownTimeout;
+
     function showDropdown() {
       clearTimeout(dropdownTimeout);
       profileDropdown.classList.remove('hidden');
@@ -152,6 +202,7 @@
         profileDropdown.classList.add('hidden');
       }, 150);
     }
+
     profileBtn.addEventListener('mouseenter', showDropdown);
     profileMenuContainer.addEventListener('mouseleave', hideDropdown);
     profileMenuContainer.addEventListener('mouseenter', showDropdown);

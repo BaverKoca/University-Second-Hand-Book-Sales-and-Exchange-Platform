@@ -274,33 +274,72 @@
     }
 
     function initializeFavoriteButtons() {
-      const favs = JSON.parse(localStorage.getItem('favoriteBooks') || '[]');
-      
-      document.querySelectorAll('.favorite-btn').forEach(btn => {
-        const idx = parseInt(btn.getAttribute('data-idx'));
-        const star = btn.querySelector('.favorite-star');
-        
-        // Set initial state
-        if (favs.includes(idx)) {
-          star.classList.remove('text-gray-300');
-          star.classList.add('text-orange-400');
-        }
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (!currentUser || !currentUser.id) return;
 
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          if (star.classList.contains('text-gray-300')) {
-            star.classList.remove('text-gray-300');
-            star.classList.add('text-orange-400');
-            if (!favs.includes(idx)) favs.push(idx);
-          } else {
-            star.classList.remove('text-orange-400');
-            star.classList.add('text-gray-300');
-            const index = favs.indexOf(idx);
-            if (index > -1) favs.splice(index, 1);
-          }
-          localStorage.setItem('favoriteBooks', JSON.stringify(favs));
+      // First get user's favorites
+      fetch(`http://localhost:3001/api/favorites/${currentUser.id}`)
+        .then(res => res.json())
+        .then(favorites => {
+          const favoriteBookIds = favorites.map(f => f.id);
+          
+          document.querySelectorAll('.favorite-btn').forEach(btn => {
+            const bookId = btn.getAttribute('data-idx');
+            const star = btn.querySelector('.favorite-star');
+            
+            // Set initial state
+            if (favoriteBookIds.includes(parseInt(bookId))) {
+              star.classList.remove('text-gray-300');
+              star.classList.add('text-orange-400');
+            }
+
+            btn.addEventListener('click', async function(e) {
+              e.preventDefault();
+              try {
+                if (star.classList.contains('text-gray-300')) {
+                  // Add to favorites
+                  const response = await fetch('http://localhost:3001/api/favorites', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      userId: currentUser.id,
+                      bookId: bookId
+                    })
+                  });
+
+                  const result = await response.json();
+                  if (result.success) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-orange-400');
+                  } else {
+                    alert(result.error || 'Failed to add to favorites');
+                  }
+                } else {
+                  // Remove from favorites
+                  const response = await fetch(`http://localhost:3001/api/favorites/${currentUser.id}/${bookId}`, {
+                    method: 'DELETE'
+                  });
+
+                  const result = await response.json();
+                  if (result.success) {
+                    star.classList.remove('text-orange-400');
+                    star.classList.add('text-gray-300');
+                  } else {
+                    alert(result.error || 'Failed to remove from favorites');
+                  }
+                }
+              } catch (error) {
+                console.error('Error updating favorites:', error);
+                alert('Error updating favorites. Please try again.');
+              }
+            });
+          });
+        })
+        .catch(error => {
+          console.error('Error loading favorites:', error);
         });
-      });
     }
 
     // Event Listeners
@@ -348,14 +387,20 @@
     // Handle book purchase
     async function handlePurchase(bookId) {
       try {
-        const userId = localStorage.getItem('userId');
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          alert('Please log in again to complete your purchase.');
+          window.location.href = 'index.html';
+          return;
+        }
+
         const response = await fetch('http://localhost:3001/api/transactions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            userId: userId,
+            userId: currentUser.id,
             bookId: bookId,
             type: 'Purchase'
           })
@@ -364,16 +409,16 @@
         const result = await response.json();
         
         if (result.success) {
-          // Remove book from the list and update display
-          allBooks = allBooks.filter(b => b.id !== bookId);
-          filteredBooks = filteredBooks.filter(b => b.id !== bookId);
+          // Remove book from the display (it's now marked as sold in the database)
+          allBooks = allBooks.filter(b => b.id !== parseInt(bookId));
+          filteredBooks = filteredBooks.filter(b => b.id !== parseInt(bookId));
           updateBookCount();
           displayBooks();
           
           // Show success message
           alert('Purchase successful! Check your transaction history for details.');
         } else {
-          alert('Failed to complete purchase. Please try again.');
+          alert(result.error || 'Failed to complete purchase. Please try again.');
         }
       } catch (error) {
         console.error('Error processing purchase:', error);
