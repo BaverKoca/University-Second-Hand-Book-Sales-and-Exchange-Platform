@@ -154,20 +154,11 @@
           return;
         }
 
-        // Check if recommendations are already cached for this session
-        const cachedRecommendations = sessionStorage.getItem('recommendedBooks');
-        let books;
+        // Fetch all available books directly from the backend (same as buy.html)
+        const response = await fetch('http://localhost:3001/api/books');
+        let books = await response.json();
+        books = books.filter(b => b.status === 'available');
 
-        if (!cachedRecommendations) {
-          // Get fresh recommendations from server
-          const response = await fetch(`http://localhost:3001/api/recommendations/${currentUser.id}`);
-          books = await response.json();
-          // Cache the recommendations for this session
-          sessionStorage.setItem('recommendedBooks', JSON.stringify(books));
-        } else {
-          books = JSON.parse(cachedRecommendations);
-        }
-        
         const carouselContainer = document.getElementById('carousel-container');
         
         if (books.length === 0) {
@@ -175,20 +166,39 @@
           return;
         }
 
-        // Get top 10 recommended books
-        const featuredBooks = books.slice(0, 10);
+        // Get up to 10 random books
+        let featuredBooks = [];
+        if (books.length > 10) {
+          // Shuffle and pick 10
+          for (let i = books.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [books[i], books[j]] = [books[j], books[i]];
+          }
+          featuredBooks = books.slice(0, 10);
+        } else {
+          featuredBooks = books;
+        }
 
-        carouselContainer.innerHTML = featuredBooks.map((b, idx) => `
-          <div class='text-center min-w-[250px] max-w-xs mx-2'>
-            <img src='${b.picture_url}' alt='${b.title}' class='mx-auto mb-4 h-48 object-contain'>
-            <h3 class='font-semibold'>${b.title}</h3>
-            <p class='text-sm text-gray-600'>${b.author}</p>
-            ${b.for_what === 'Sell' 
-              ? `<p class='mt-2 font-semibold'>$${b.price.toFixed(2)}</p>`
-              : `<p class='mt-2 font-semibold text-green-600'>Available for Exchange</p>`
-            }
-          </div>
-        `).join('');
+        // Render 10 slots, fill with books or empty placeholders
+        carouselContainer.innerHTML = Array.from({length: 10}).map((_, idx) => {
+          const b = featuredBooks[idx];
+          if (!b) {
+            return `<div class='text-center min-w-[250px] max-w-xs mx-2 opacity-30 bg-gray-100 rounded-lg h-72 flex items-center justify-center'>
+              <span class='text-gray-400'>Empty</span>
+            </div>`;
+          }
+          return `
+            <div class='text-center min-w-[250px] max-w-xs mx-2'>
+              <img src='http://localhost:3001${b.picture_url}' alt='${b.title}' class='mx-auto mb-4 h-48 object-contain bg-blue-50 rounded-lg'>
+              <h3 class='font-semibold'>${b.title}</h3>
+              <p class='text-sm text-gray-600'>${b.author}</p>
+              ${b.for_what === 'Sell' 
+                ? `<p class='mt-2 font-semibold'>$${b.price.toFixed(2)}</p>`
+                : `<p class='mt-2 font-semibold text-green-600'>Available for Exchange</p>`
+              }
+            </div>
+          `;
+        }).join('');
 
         // Initialize carousel
         let currentPosition = 0;
@@ -286,6 +296,16 @@
       if (e.key === 'Escape' && !aboutModal.classList.contains('hidden')) {
         hideAboutModal();
       }
+    });
+
+    // Sign out logic
+    document.querySelectorAll('a[href="index.html"]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        // Remove login state and user info
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear();
+      });
     });
   </script>
 
