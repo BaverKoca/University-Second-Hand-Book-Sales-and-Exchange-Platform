@@ -125,6 +125,7 @@
             <!-- Sort -->
             <div class="flex-shrink-0">
               <select id="sortBy" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="featured">Featured</option>
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="priceAsc">Price: Low to High</option>
@@ -167,8 +168,25 @@
           document.getElementById('forWhat').value = forWhat;
         }
 
-        const response = await fetch('http://localhost:3001/api/books');
-        allBooks = await response.json();
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        // Check if recommendations are cached
+        const cachedRecommendations = sessionStorage.getItem('recommendedBooks');
+        
+        if (cachedRecommendations) {
+          allBooks = JSON.parse(cachedRecommendations);
+        } else {
+          // Get fresh recommendations
+          const response = await fetch(`http://localhost:3001/api/recommendations/${currentUser.id}`);
+          allBooks = await response.json();
+          // Cache the recommendations
+          sessionStorage.setItem('recommendedBooks', JSON.stringify(allBooks));
+        }
+
         filteredBooks = [...allBooks];
         
         updateBookCount();
@@ -216,6 +234,9 @@
       // Apply sorting
       filteredBooks.sort((a, b) => {
         switch (sortBy) {
+          case 'featured':
+            // Use relevance_score from the recommendations
+            return (b.relevance_score || 0) - (a.relevance_score || 0);
           case 'newest':
             return new Date(b.created_at) - new Date(a.created_at);
           case 'oldest':

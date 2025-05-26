@@ -197,15 +197,15 @@ app.put('/api/books/:bookId/sold', (req, res) => {
 // Add a new book
 app.post('/api/books', (req, res) => {
   const {
-    title, author, genre, course_code, edition, year,
+    title, author, genre, faculty, edition, year,
     book_condition, price, picture_url, for_what, owner_email
   } = req.body;
 
   if (!title || !author || !genre || !year || !book_condition || !picture_url || !for_what || !owner_email) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  if (genre === 'Education' && !course_code) {
-    return res.status(400).json({ error: 'Course code required for Education genre' });
+  if (genre === 'education' && !faculty) {
+    return res.status(400).json({ error: 'Faculty required for Education genre' });
   }
   if (for_what === 'Sell' && (price === undefined || price === null || price === '')) {
     return res.status(400).json({ error: 'Price required for selling' });
@@ -213,9 +213,9 @@ app.post('/api/books', (req, res) => {
 
   dbBooks.run('BEGIN TRANSACTION');
   dbBooks.run(
-    `INSERT INTO books (title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
+    `INSERT INTO books (title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [title, author, genre, course_code, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
+    [title, author, genre, faculty, edition, year, book_condition, price, picture_url, for_what, owner_email, 'available'],
     function (err) {
       if (err) {
         dbBooks.run('ROLLBACK');
@@ -236,6 +236,42 @@ app.get('/api/books', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.json(books || []);
+  });
+});
+
+// Get personalized book recommendations
+app.get('/api/recommendations/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  // Get user's faculty
+  dbUsers.get('SELECT faculty FROM users WHERE id = ?', [userId], (err, user) => {
+    if (err) {
+      console.error('Error getting user faculty:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get user's favorites and faculty books
+    dbBooks.all(`
+      SELECT DISTINCT b.*, 
+             CASE 
+               WHEN f.user_id IS NOT NULL THEN 2  -- Favorite books get higher priority
+               WHEN b.faculty = ? THEN 1  -- Faculty books get medium priority
+               ELSE 0  -- Other books get lowest priority
+             END as relevance_score
+      FROM books b
+      LEFT JOIN favorites f ON b.id = f.book_id AND f.user_id = ?
+      WHERE b.status = 'available'
+      ORDER BY relevance_score DESC, b.id DESC
+    `, [user.faculty, userId], (err, books) => {
+      if (err) {
+        console.error('Error getting recommended books:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(books || []);
+    });
   });
 });
 

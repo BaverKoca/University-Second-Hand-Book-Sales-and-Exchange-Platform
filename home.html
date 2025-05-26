@@ -148,8 +148,25 @@
     // Load featured books from database
     async function loadFeaturedBooks() {
       try {
-        const response = await fetch('http://localhost:3001/api/books');
-        const books = await response.json();
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.id) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        // Check if recommendations are already cached for this session
+        const cachedRecommendations = sessionStorage.getItem('recommendedBooks');
+        let books;
+
+        if (!cachedRecommendations) {
+          // Get fresh recommendations from server
+          const response = await fetch(`http://localhost:3001/api/recommendations/${currentUser.id}`);
+          books = await response.json();
+          // Cache the recommendations for this session
+          sessionStorage.setItem('recommendedBooks', JSON.stringify(books));
+        } else {
+          books = JSON.parse(cachedRecommendations);
+        }
         
         const carouselContainer = document.getElementById('carousel-container');
         
@@ -158,8 +175,8 @@
           return;
         }
 
-        // Get random featured books
-        const featuredBooks = books.sort(() => 0.5 - Math.random()).slice(0, 10);
+        // Get top 10 recommended books
+        const featuredBooks = books.slice(0, 10);
 
         carouselContainer.innerHTML = featuredBooks.map((b, idx) => `
           <div class='text-center min-w-[250px] max-w-xs mx-2'>
