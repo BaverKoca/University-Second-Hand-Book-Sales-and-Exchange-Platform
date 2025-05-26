@@ -83,15 +83,15 @@
 
   <!--Call to Action-->
   <section class="mt-16 text-center">
-    <div class="bg-white mx-auto max-w-2xl py-6 px-4 rounded-xl shadow-sm">
-      <p class="font-semibold">Want to swap books? Find your perfect match!</p>
+    <div onclick="window.location.href='buy.html?for_what=Exchange'" class="bg-white mx-auto max-w-2xl py-6 px-4 rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all hover:bg-blue-50">
+      <p class="font-semibold text-lg">Want to swap books? Find your perfect match!</p>
     </div>
   </section>
 
   <!--Footer-->
   <footer class="mt-auto py-8 border-t text-center text-sm text-gray-500 bg-white">
     <div class="flex flex-col md:flex-row justify-center items-center gap-4">
-      <a href="#about" class="hover:text-blue-600">About Us</a>
+      <a href="#" onclick="showAboutModal(event)" class="hover:text-blue-600">About Us</a>
       <a href="mailto:baver.koca00@gmail.com" class="hover:text-blue-600">Contact</a>
     </div>
     <div class="flex justify-center gap-6 mt-4">
@@ -237,6 +237,37 @@
     document.addEventListener('click', function(e) {
       if (!profileMenuContainer.contains(e.target)) {
         profileDropdown.classList.add('hidden');
+      }
+    });
+
+    // About Us Modal functionality
+    const aboutModal = document.getElementById('about-modal');
+    const closeAboutModal = document.getElementById('close-about-modal');
+
+    function showAboutModal(event) {
+      event.preventDefault();
+      aboutModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+    }
+
+    function hideAboutModal() {
+      aboutModal.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    closeAboutModal.addEventListener('click', hideAboutModal);
+
+    // Close modal when clicking outside
+    aboutModal.addEventListener('click', (e) => {
+      if (e.target === aboutModal) {
+        hideAboutModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !aboutModal.classList.contains('hidden')) {
+        hideAboutModal();
       }
     });
   </script>

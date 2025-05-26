@@ -154,11 +154,17 @@
     // Load and display books from the database
     async function loadBooks() {
       try {
-        // Get search parameter from URL if it exists
+        // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('search');
+        const forWhat = urlParams.get('for_what');
+
+        // Set initial filter values from URL parameters
         if (searchQuery) {
           document.getElementById('searchInput').value = searchQuery;
+        }
+        if (forWhat) {
+          document.getElementById('forWhat').value = forWhat;
         }
 
         const response = await fetch('http://localhost:3001/api/books');
