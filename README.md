@@ -1,14 +1,17 @@
 # 📚 TheBookMark
 
-![Screenshot (1503)](https://github.com/user-attachments/assets/2f4f1508-37ab-4836-8a33-471ebc4d41c5)
-
 ## 🖼️ Screenshots
 ![Image](https://github.com/user-attachments/assets/06fbd217-8728-4241-a19e-77eb5ffa143b)
-
+![Image](https://github.com/user-attachments/assets/3ff9fe07-f598-4169-935a-a2c1d03cd356)
+![Image](https://github.com/user-attachments/assets/dd57083e-7726-43dd-8ceb-8a711c3e6818)
+![Image](https://github.com/user-attachments/assets/7300b710-92ba-4be3-98e3-a85ac376e20f)
+![Image](https://github.com/user-attachments/assets/c0a6391a-1559-4823-8de7-03402a01b79f)
+![Image](https://github.com/user-attachments/assets/237dfcc4-82c8-4edc-a9f8-667f0c9b6055)
+![Image](https://github.com/user-attachments/assets/4e3c3698-a2b9-4cb4-bc9b-f3432b99e64f)
 
 <p align="center">
   <img src="" alt="Index Page" width="400"/>
-  <img src="![Image](https://github.com/user-attachments/assets/7300b710-92ba-4be3-98e3-a85ac376e20f)" alt="Home Page" width="400"/>
+  <img src="" alt="Home Page" width="400"/>
   <img src="screenshots/buy.png" alt="Buy Page" width="400"/>
   <img src="screenshots/sell-exchange.png" alt="Sell/Exchange Page" width="400"/>
 </p>
