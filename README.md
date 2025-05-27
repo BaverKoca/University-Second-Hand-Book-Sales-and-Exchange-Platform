@@ -1,10 +1,13 @@
 # 📚 TheBookMark
 
+![Screenshot (1503)](https://github.com/user-attachments/assets/2f4f1508-37ab-4836-8a33-471ebc4d41c5)
 
 ## 🖼️ Screenshots
+![Image](https://github.com/user-attachments/assets/06fbd217-8728-4241-a19e-77eb5ffa143b)
+
 
 <p align="center">
-  <img src="![Image](https://github.com/user-attachments/assets/06fbd217-8728-4241-a19e-77eb5ffa143b)" alt="Index Page" width="400"/>
+  <img src="" alt="Index Page" width="400"/>
   <img src="![Image](https://github.com/user-attachments/assets/7300b710-92ba-4be3-98e3-a85ac376e20f)" alt="Home Page" width="400"/>
   <img src="screenshots/buy.png" alt="Buy Page" width="400"/>
   <img src="screenshots/sell-exchange.png" alt="Sell/Exchange Page" width="400"/>
