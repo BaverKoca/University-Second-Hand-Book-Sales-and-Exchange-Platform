@@ -1,5 +1,17 @@
 # 📚 TheBookMark
 
+
+## 🖼️ Screenshots
+
+<p align="center">
+  <img src="![Image](https://github.com/user-attachments/assets/06fbd217-8728-4241-a19e-77eb5ffa143b)" alt="Index Page" width="400"/>
+  <img src="![Image](https://github.com/user-attachments/assets/7300b710-92ba-4be3-98e3-a85ac376e20f)" alt="Home Page" width="400"/>
+  <img src="screenshots/buy.png" alt="Buy Page" width="400"/>
+  <img src="screenshots/sell-exchange.png" alt="Sell/Exchange Page" width="400"/>
+</p>
+
+---
+
 <p align="center">
   <img src="https://img.icons8.com/ios-filled/100/000000/book.png" alt="TheBookMark Logo" width="90"/>
 </p>
@@ -90,16 +102,6 @@ The server will run at [http://localhost:3001](http://localhost:3001).
 │   └── uploads/
 └── README.md
 ```
-
----
-
-## 🖼️ Screenshots
-
-<p align="center">
-  <img src="screenshots/home.png" alt="Home Page" width="400"/>
-  <img src="screenshots/buy.png" alt="Buy Page" width="400"/>
-  <img src="screenshots/sell-exchange.png" alt="Sell/Exchange Page" width="400"/>
-</p>
 
 ---
 
