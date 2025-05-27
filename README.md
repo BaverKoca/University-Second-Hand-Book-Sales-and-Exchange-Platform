@@ -12,10 +12,6 @@
 ---
 
 <p align="center">
-  <img src="https://img.icons8.com/ios-filled/100/000000/book.png" alt="TheBookMark Logo" width="90"/>
-</p>
-
-<p align="center">
   <b>A modern, user-friendly platform for university students to buy, sell, and exchange second-hand books.</b>
 </p>
 
