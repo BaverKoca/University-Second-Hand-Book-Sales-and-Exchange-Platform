@@ -9,13 +9,6 @@
 ![Image](https://github.com/user-attachments/assets/237dfcc4-82c8-4edc-a9f8-667f0c9b6055)
 ![Image](https://github.com/user-attachments/assets/4e3c3698-a2b9-4cb4-bc9b-f3432b99e64f)
 
-<p align="center">
-  <img src="" alt="Index Page" width="400"/>
-  <img src="" alt="Home Page" width="400"/>
-  <img src="screenshots/buy.png" alt="Buy Page" width="400"/>
-  <img src="screenshots/sell-exchange.png" alt="Sell/Exchange Page" width="400"/>
-</p>
-
 ---
 
 <p align="center">
